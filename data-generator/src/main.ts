@@ -3,20 +3,25 @@ import http = require('http');
 import WebSocket = require('ws');
 import { AddressInfo } from 'ws';
 
-
-
 // Initialize a simple HTTP server
 const app = express();
 const server = http.createServer(app);
+
 // Initialize the WebSocket server instance
 const wss = new WebSocket.Server({ server });
+
 app.get('/', (req, res) => {
     res.send('Hello, this is a WebSocket server!');
 });
 
 
+
+
 wss.on('connection', (ws: WebSocket) => {
     console.log('WebSocket connection established');
+
+    let totalBytesSent = 0;
+    let lastLoggedTime = Date.now();
 
     // Function to generate dummy sensor data with specific range
     const generateDummySensorData = () => {
@@ -26,14 +31,22 @@ wss.on('connection', (ws: WebSocket) => {
         return `${ns}ns ${rd} ${ird}`;
     };
 
-
-
     // Send sensor data at a rate of 16Hz (every 62.5ms)
     const intervalId = setInterval(() => {
-        ws.send(generateDummySensorData());
+        const data = generateDummySensorData();
+        const dataSize = Buffer.byteLength(data);
+        totalBytesSent += dataSize;
+        ws.send(data);
+
+        // Every second, log the data rate and reset the counter
+        if (Date.now() - lastLoggedTime >= 1000) {
+            console.log(`Data rate: ${totalBytesSent} bytes per second`);
+            totalBytesSent = 0; // Reset the counter
+            lastLoggedTime = Date.now();
+        }
     }, 62.5);
 
-    // Stop sending after 1 minute
+    // Stop sending after 30 seconds
     setTimeout(() => {
         clearInterval(intervalId);
         ws.close(); // Optionally close the connection when done
@@ -53,7 +66,12 @@ wss.on('connection', (ws: WebSocket) => {
 
 
 
-// ###################################################################################################################################
+
+
+
+
+
+// ###################################################################################################################
 // Start our server
 server.listen(process.env.PORT || 8999, () => {
     let port = (server.address() as AddressInfo).port;
