@@ -4,38 +4,56 @@ import WebSocket = require('ws');
 import { AddressInfo } from 'ws';
 
 
+
 // Initialize a simple HTTP server
 const app = express();
 const server = http.createServer(app);
-
-
 // Initialize the WebSocket server instance
-const wss = new WebSocket.Server({ noServer: true });
-
-// Setup the server to handle HTTP GET requests
+const wss = new WebSocket.Server({ server });
 app.get('/', (req, res) => {
     res.send('Hello, this is a WebSocket server!');
 });
 
-// Handle upgrade of the request to a WebSocket connection
-server.on('upgrade', (request, socket, head) => {
-    console.log('Upgrading to WebSocket...');
 
-    wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request);
-    });
-});
-
-// When a WebSocket connection is established
 wss.on('connection', (ws: WebSocket) => {
     console.log('WebSocket connection established');
-    ws.send('The WebSocket is connected and working properly');
 
+    // Function to generate dummy sensor data with specific range
+    const generateDummySensorData = () => {
+        const ns = process.hrtime.bigint(); // Simulated nanoseconds
+        const rd = Math.floor(Math.random() * (10000 - 750 + 1)) + 750; // Random RD value between 750 and 10000
+        const ird = Math.floor(Math.random() * (10000 - 750 + 1)) + 750; // Random IRD value between 750 and 10000
+        return `${ns}ns ${rd} ${ird}`;
+    };
+
+
+
+    // Send sensor data at a rate of 16Hz (every 62.5ms)
+    const intervalId = setInterval(() => {
+        ws.send(generateDummySensorData());
+    }, 62.5);
+
+    // Stop sending after 1 minute
+    setTimeout(() => {
+        clearInterval(intervalId);
+        ws.close(); // Optionally close the connection when done
+    }, 30000);
+
+    // Set up event listener for client messages, if needed
     ws.on('message', (message) => {
         console.log(`Received message => ${message}`);
     });
+
+    // Handle client disconnection
+    ws.on('close', () => {
+        console.log('Client disconnected');
+        clearInterval(intervalId); // Make sure to clear interval on client disconnection
+    });
 });
 
+
+
+// ###################################################################################################################################
 // Start our server
 server.listen(process.env.PORT || 8999, () => {
     let port = (server.address() as AddressInfo).port;
