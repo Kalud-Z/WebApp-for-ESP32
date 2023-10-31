@@ -44,7 +44,10 @@ wss.on('connection', (ws: WebSocket) => {
             totalBytesSent = 0; // Reset the counter
             lastLoggedTime = Date.now();
         }
-    }, 62.5);
+    }, 20);
+    // 62.5ms = 16Hz : max Data rate: 441 bytes per second
+    // 20ms   = 50Hz : max Data rate: 1269 bytes per second
+
 
     // Stop sending after 30 seconds
     setTimeout(() => {
