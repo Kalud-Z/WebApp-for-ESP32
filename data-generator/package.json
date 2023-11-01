@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "npx ts-node src/main.ts",
+    "start:b2": "npx ts-node src/binary-two-channels.ts",
+    "start:b5": "npx ts-node src/binary-five-channels.ts",
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
