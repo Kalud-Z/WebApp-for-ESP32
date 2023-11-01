@@ -22,38 +22,39 @@ wss.on('connection', (ws: WebSocket) => {
     let lastLoggedTime = Date.now();
     let secondsElapsed = 0;
     let dataPointId = 0; // Initialize the ID counter
+    const gapBetweenTimeStamps_inMilliSeconds = 1;
+
 
     // Function to generate dummy sensor data with specific range
-    const generateDummySensorData = () => {
-        const ns = process.hrtime.bigint(); // Simulated nanoseconds [1]
-        const min = 80479; // Lower bound of the random value
-        const max = 119479; // Upper bound of the random value
+    const generateDummySensorDataBatch = () => {
+        const dataPoints = [];
+        let ns = process.hrtime.bigint(); // Initial timestamp in nanoseconds
+        const nsGap = BigInt(gapBetweenTimeStamps_inMilliSeconds) * BigInt(1_000_000); // 50ms gap in nanoseconds
 
-        // Generate random values within the specified range for rd and ird
-        const rd = Math.floor(Math.random() * (max - min + 1)) + min;
-        const ird = Math.floor(Math.random() * (max - min + 1)) + min;
+        for (let i = 0; i < 10; i++) {
+            const min = 80479;
+            const max = 119479;
+            const rd = Math.floor(Math.random() * (max - min + 1)) + min;
+            const ird = Math.floor(Math.random() * (max - min + 1)) + min;
 
-        // Create a buffer: 8 bytes for bigint, 4 bytes each for rd and ird
-        const buffer = Buffer.alloc(20);
+            const buffer = Buffer.alloc(20);
+            buffer.writeBigUInt64BE(ns, 0);
+            buffer.writeUInt32BE(rd, 8);
+            buffer.writeUInt32BE(ird, 12);
+            buffer.writeUInt32BE(dataPointId++, 16);
+            dataPoints.push(buffer);
 
-        // Write the timestamp as bigint (8 bytes)
-        buffer.writeBigUInt64BE(ns, 0);
+            ns = ns + nsGap; // Increment timestamp by the gap for the next data point
+        }
 
-        // Write rd and ird as unsigned integers (4 bytes each) [2]
-        buffer.writeUInt32BE(rd, 8);
-        buffer.writeUInt32BE(ird, 12);
-
-        // Write the data point id as unsigned integer (4 bytes)
-        buffer.writeUInt32BE(dataPointId++, 16); // Increment the ID after writing it
-
-        return buffer;
+        return Buffer.concat(dataPoints);
     };
 
     // Send sensor data at a rate of 16Hz (every 62.5ms)
     const intervalId = setInterval(() => {
-        const dataBuffer = generateDummySensorData();
-        totalBytesSent += dataBuffer.length;
-        ws.send(dataBuffer); // Send the buffer as binary data
+        const dataBufferBatch = generateDummySensorDataBatch();
+        totalBytesSent += dataBufferBatch.length;
+        ws.send(dataBufferBatch); // Send the batch as binary data
 
         // Every second, log the data rate and reset the counter
         if (Date.now() - lastLoggedTime >= 1000) {
@@ -63,7 +64,7 @@ wss.on('connection', (ws: WebSocket) => {
             lastLoggedTime = Date.now();
             console.log(`Current bufferedAmount: ${ws.bufferedAmount}`); //[3]
         }
-    }, 10);
+    }, gapBetweenTimeStamps_inMilliSeconds * 10);
     // 62.5ms = 16Hz : max Data rate: 441 bytes per second
     // 20ms   = 50Hz : max Data rate: 1,269 bytes per second (this is what the current sample rate of the dev board)
     // 1ms    = 1000Hz :max Data rate: 14,500 bytes per second ==> issues of latency and data loss (~100s latency)

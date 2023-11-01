@@ -103,16 +103,16 @@ export default function setupCharting(dataEmitter) {
         // Define initial data arrays for the two channels
         let data1 = [
             [], // timestamps
-            []  // sensor 1 data
+            []  // channel 1 data
         ];
 
         let data2 = [
             [], // timestamps
-            []  // sensor 2 data
+            []  // channel 2 data
         ];
 
-        // Define the window size (e.g., 10 seconds)
-        const windowSize = 1; // how far we go back in seconds
+        // Define the window size
+        const windowSize = 60; // how far we go back in seconds
         const maxDataPoints = windowSize * 1000 / intervalRate_TwoChannels;
 
         // Function to update chart dimensions
@@ -139,6 +139,7 @@ export default function setupCharting(dataEmitter) {
             ],
             axes: [
                 {
+                    auto: false, // Add this linekkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
                     stroke: "black",
                     grid: { show: true },
                 },
@@ -185,35 +186,38 @@ export default function setupCharting(dataEmitter) {
         let uplot1 = new uPlot(options1, data1, container1);
         let uplot2 = new uPlot(options2, data2, container2);
 
+        let now = Date.now();
+        uplot1.setScale('x', { min: now - windowSize * 1000, max: now });
+        uplot2.setScale('x', { min: now - windowSize * 1000, max: now });
+
         // Update chart dimensions on window resize
         window.addEventListener('resize', () => updateChartDimensions(uplot1, uplot2));
 
-        // Listen to the 'data' event from the WebSocket module
-        dataEmitter.on('data', ({ timestampNs, rd, ird }) => {
-            // Convert nanoseconds to seconds for the timestamp
-            let timestamp = Number(timestampNs) / 1e9;
+        dataEmitter.on('dataBatch', (batchData) => {
+            // Update the data arrays for each sensor with batch data
+            data1[0].push(...batchData.timestamps);
+            data1[1].push(...batchData.rdValues);
+            data2[0].push(...batchData.timestamps);
+            data2[1].push(...batchData.irdValues);
 
-            // Update the data arrays for each sensor
-            data1[0].push(timestamp);
-            data1[1].push(rd);
-            data2[0].push(timestamp);
-            data2[1].push(ird);
-
-            // If we have more data points than the window size, remove the oldest ones
+            // Trim the data arrays if they're longer than maxDataPoints
             if (data1[0].length > maxDataPoints) {
-                data1.forEach(channel => channel.shift());
-                data2.forEach(channel => channel.shift());
+                data1.forEach(channel => channel.splice(0, channel.length - maxDataPoints));
+                data2.forEach(channel => channel.splice(0, channel.length - maxDataPoints));
             }
+
+            console.log('this is data1 : ', data1)
+            console.log('§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§')
 
             // Update the charts
             uplot1.setData(data1);
             uplot2.setData(data2);
 
-            // Adjust the scales to create the sliding effect for each chart
-            let min = timestamp - windowSize;
-            let max = timestamp;
-            uplot1.setScale('x', { min: min, max: max });
-            uplot2.setScale('x', { min: min, max: max });
+            // // Assuming the timestamps are sorted, set the scale based on the last timestamp
+            // let min = data1[0][data1[0].length - 1] - windowSize;
+            // let max = data1[0][data1[0].length - 1];
+            // uplot1.setScale('x', { min: min, max: max });
+            // uplot2.setScale('x', { min: min, max: max });
         });
     }
 };

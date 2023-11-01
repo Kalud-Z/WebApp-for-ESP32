@@ -21,7 +21,7 @@ ws.onmessage = function (event) {
     lastFrameTime = now;
 
     // Log or display the delay somewhere
-    console.log(`Time since last frame: ${frameDelay}ms`);
+    // console.log(`Time since last frame: ${frameDelay}ms`);
 
     if (typeof event.data === 'string') {
         const message = JSON.parse(event.data);
@@ -29,9 +29,8 @@ ws.onmessage = function (event) {
             numberOfChannels = message.channels;
             dataEmitter.emit('configuration', numberOfChannels);
         }
-    }
-    else {
-        if(numberOfChannels === 5) {
+    } else {
+        if (numberOfChannels === 5) {
             const arrayBuffer = event.data;
             const view = new DataView(arrayBuffer);
             const timestampNs = view.getBigUint64(0);
@@ -41,26 +40,50 @@ ws.onmessage = function (event) {
             const ch4 = view.getUint32(20);
             const ch5 = view.getUint32(24);
             // console.log(`Timestamp: ${timestampNs}ns, ch1: ${ch1}, ch2: ${ch2}, ch3: ${ch3}, ch4: ${ch4}, ch5: ${ch5}`);
-            dataEmitter.emit('data', { timestampNs, ch1, ch2, ch3, ch4, ch5 });
+            dataEmitter.emit('data', {timestampNs, ch1, ch2, ch3, ch4, ch5});
         }
-        if(numberOfChannels === 2) {
+
+        // Handling binary data for two channels, now with batches of 10 datapoints
+        if (numberOfChannels === 2) {
             const arrayBuffer = event.data;
-            const view = new DataView(arrayBuffer);
-            const timestampNs = view.getBigUint64(0);
-            const rd = view.getUint32(8);
-            const ird = view.getUint32(12);
-            const dataPointID = view.getUint32(16);
-            console.log('dataPointID : ', dataPointID);
-            dataEmitter.emit('data', { timestampNs, rd, ird , dataPointID });
+            const datapointSize = 20; // Each datapoint is 20 bytes
+            const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
+
+            if (numberOfChannels === 2) {
+                const arrayBuffer = event.data;
+                const datapointSize = 20; // Each datapoint is 20 bytes
+                const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
+
+                let batchData = {
+                    timestamps: [],
+                    rdValues: [],
+                    irdValues: [],
+                    dataPointIDs: []
+                };
+
+                for (let i = 0; i < numberOfDataPoints; i++) {
+                    const offset = i * datapointSize;
+                    const view = new DataView(arrayBuffer, offset, datapointSize);
+
+                    batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
+                    batchData.rdValues.push(view.getUint32(8));
+                    batchData.irdValues.push(view.getUint32(12));
+                    batchData.dataPointIDs.push(view.getUint32(16));
+                }
+
+                console.log('this is batchData : ', batchData);
+                console.log('################################')
+                dataEmitter.emit('dataBatch', batchData);
+            }
+
         }
     }
-};
 
-ws.onerror = function (error) {
-    console.error('WebSocket Error: ', error);
-};
+    ws.onerror = function (error) {
+        console.error('WebSocket Error: ', error);
+    };
 
-ws.onclose = function (event) {
-    console.log('WebSocket connection closed');
-};
-
+    ws.onclose = function (event) {
+        console.log('WebSocket connection closed');
+    };
+}
