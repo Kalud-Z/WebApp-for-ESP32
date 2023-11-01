@@ -20,6 +20,8 @@ wss.on('connection', (ws: WebSocket) => {
 
     let totalBytesSent = 0;
     let lastLoggedTime = Date.now();
+    let secondsElapsed = 0;
+
 
     // Function to generate dummy sensor data with specific range
     const generateDummySensorData = () => {
@@ -52,7 +54,8 @@ wss.on('connection', (ws: WebSocket) => {
 
         // Every second, log the data rate and reset the counter
         if (Date.now() - lastLoggedTime >= 1000) {
-            console.log(`Data rate: ${totalBytesSent} bytes per second`);
+            secondsElapsed++; // Increment the seconds elapsed counter
+            console.log(`${secondsElapsed}. Data rate: ${totalBytesSent} bytes per second`);
             totalBytesSent = 0; // Reset the counter
             lastLoggedTime = Date.now();
         }
@@ -117,3 +120,4 @@ server.listen(process.env.PORT || 8999, () => {
 // Dealing with non-standard data sizes can add complexity to the code,
 // as standard types and operations are typically designed
 // to work with powers of two (8, 16, 32, 64 bits, etc.)
+
