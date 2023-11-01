@@ -20,31 +20,39 @@ wss.on('connection', (ws: WebSocket) => {
     let totalBytesSent = 0;
     let lastLoggedTime = Date.now();
 
-    // Function to generate dummy sensor data for ECG with 24-bit resolution
-    const generateDummyECGData = () => {
+    // Function to generate dummy sensor data as a binary buffer
+    const generateDummySensorDataBinary = () => {
         const ns = process.hrtime.bigint(); // Simulated nanoseconds
 
-        // Generating random values for 5 channels, each between 10,000,000 and 16,777,215
-        const values = Array.from({ length: 5 }, () =>
-            Math.floor(Math.random() * (16777216 - 10000000 + 1)) + 10000000
-        );
-        return `${ns}ns ${values.join(' ')}`;
+        // Creating a buffer with 8 bytes for bigint and 4 bytes for each sensor value
+        const buffer = Buffer.alloc(8 + 4 * 5);
+
+        // Write the timestamp as bigint (8 bytes)
+        buffer.writeBigUInt64BE(ns, 0);
+
+        // Generating and writing random values for 5 channels, each between 10,000,000 and 16,777,215
+        for (let i = 0; i < 5; i++) {
+            const value = Math.floor(Math.random() * (16777215 - 10000000 + 1)) + 10000000;
+            buffer.writeUInt32BE(value, 8 + i * 4); // Write each value as a 4-byte unsigned integer
+        }
+
+        return buffer;
     };
 
-    // Send ECG sensor data at a rate of 1000Hz (every 1ms)
-    const intervalId = setInterval(() => {
-        const data = generateDummyECGData();
-        const dataSize = Buffer.byteLength(data);
-        totalBytesSent += dataSize;
-        ws.send(data);
 
-        // Every second, log the data rate and reset the counter
+    // Send binary sensor data at a specified rate
+    const intervalId = setInterval(() => {
+        const dataBuffer = generateDummySensorDataBinary();
+        totalBytesSent += dataBuffer.length;
+        ws.send(dataBuffer);
+
+        // Logging the data rate
         if (Date.now() - lastLoggedTime >= 1000) {
             console.log(`Data rate: ${totalBytesSent} bytes per second`);
-            totalBytesSent = 0; // Reset the counter
+            totalBytesSent = 0;
             lastLoggedTime = Date.now();
         }
-    }, 1);
+    }, 10); // Adjust the interval as needed
     //10ms = max Data rate: 5,795 bytes per second
     //5ms  = max Data rate: 11,712 bytes per second
     //1ms  = max Data rate: 54,412 bytes per second  [rate of 1000Hz]
@@ -52,7 +60,7 @@ wss.on('connection', (ws: WebSocket) => {
     // Stop sending after 30 seconds
     setTimeout(() => {
         clearInterval(intervalId);
-        ws.close(); // Optionally close the connection when done
+        ws.close();
     }, 30000);
 
     ws.on('message', (message) => {
@@ -61,20 +69,14 @@ wss.on('connection', (ws: WebSocket) => {
 
     ws.on('close', () => {
         console.log('Client disconnected');
-        clearInterval(intervalId); // Make sure to clear interval on client disconnection
+        clearInterval(intervalId);
     });
 });
 
 
-
-
-
-
-
-//########################################################################################################################################
+//#######################################################################################################################
 // Start our server
 server.listen(process.env.PORT || 8999, () => {
     const port = (server.address() as AddressInfo).port;
     console.log(`Binary - Five channels | Server started on port ${port} :)`);
 });
-
