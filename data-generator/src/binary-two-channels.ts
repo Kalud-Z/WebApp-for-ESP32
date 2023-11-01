@@ -25,9 +25,13 @@ wss.on('connection', (ws: WebSocket) => {
 
     // Function to generate dummy sensor data with specific range
     const generateDummySensorData = () => {
-        const ns = process.hrtime.bigint(); // Simulated nanoseconds
-        const rd = Math.floor(Math.random() * (16777216 - 10000000 + 1)) + 10000000;
-        const ird = Math.floor(Math.random() * (16777216 - 10000000 + 1)) + 10000000;
+        const ns = process.hrtime.bigint(); // Simulated nanoseconds [1]
+        const min = 80479; // Lower bound of the random value
+        const max = 119479; // Upper bound of the random value
+
+        // Generate random values within the specified range for rd and ird
+        const rd = Math.floor(Math.random() * (max - min + 1)) + min;
+        const ird = Math.floor(Math.random() * (max - min + 1)) + min;
 
         // Create a buffer: 8 bytes for bigint, 4 bytes each for rd and ird
         const buffer = Buffer.alloc(16);
@@ -35,12 +39,13 @@ wss.on('connection', (ws: WebSocket) => {
         // Write the timestamp as bigint (8 bytes)
         buffer.writeBigUInt64BE(ns, 0);
 
-        // Write rd and ird as unsigned integers (4 bytes each)
+        // Write rd and ird as unsigned integers (4 bytes each) [2]
         buffer.writeUInt32BE(rd, 8);
         buffer.writeUInt32BE(ird, 12);
 
         return buffer;
     };
+
 
     // Send sensor data at a rate of 16Hz (every 62.5ms)
     const intervalId = setInterval(() => {
@@ -83,10 +88,36 @@ wss.on('connection', (ws: WebSocket) => {
 
 
 
-
 // ###################################################################################################################
 // Start our server
 server.listen(process.env.PORT || 8999, () => {
     let port = (server.address() as AddressInfo).port;
     console.log(`Binary - Two Channels | Server started on port ${port} :)`);
 });
+
+
+
+
+// ___________________________________________________________________________________________________________
+//
+// [1]
+// It's quite common to use a 64-bit value to represent time. In various systems and protocols,
+// a 64-bit timestamp is standard, providing enough granularity for most applications without
+// being unnecessarily large.
+//
+// The writeBigUInt64BE Method: This specific method is designed to write a BigInt as a 64-bit
+// big-endian unsigned integer. In Node.js, the BigInt type is used to represent integers
+// larger than the 2^53 - 1 limit of the Number type. When dealing with high-resolution timestamps,
+// especially ones represented in nanoseconds, using BigInt is a necessity to avoid losing precision,
+// as the number of nanoseconds since the Unix epoch is too large to be represented accurately by a Number.
+
+
+// --------------------------------------------------------
+
+// [2]
+
+//
+// why 4 bytes for each channel ?
+// Dealing with non-standard data sizes can add complexity to the code,
+// as standard types and operations are typically designed
+// to work with powers of two (8, 16, 32, 64 bits, etc.)
