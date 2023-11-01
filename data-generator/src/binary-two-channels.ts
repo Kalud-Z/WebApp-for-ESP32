@@ -59,7 +59,7 @@ wss.on('connection', (ws: WebSocket) => {
             totalBytesSent = 0; // Reset the counter
             lastLoggedTime = Date.now();
         }
-    }, 1);
+    }, 10);
     // 62.5ms = 16Hz : max Data rate: 441 bytes per second
     // 20ms   = 50Hz : max Data rate: 1,269 bytes per second (this is what the current sample rate of the dev board)
     // 1ms    = 1000Hz :max Data rate: 14,500 bytes per second ==> issues of latency and data loss

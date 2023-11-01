@@ -1,5 +1,7 @@
 import {numberOfChannels} from './websocketModule.js';
 
+const intervalRate_TwoChannels = 10; // in ms. the rate at which the server sends the data.
+const intervalRate_FiveChannels = 10; //in ms. the rate at which the server sends the data.
 
 export default function setupCharting(dataEmitter) {
     if(numberOfChannels === 5) {
@@ -8,8 +10,7 @@ export default function setupCharting(dataEmitter) {
 
         // Define the window size (e.g., 3 seconds)
         const windowSize = 1; // showing data in the 3 seconds
-        const dataSendingInterval = 1; // 1ms
-        const maxDataPoints = windowSize * 1000 / dataSendingInterval;
+        const maxDataPoints = windowSize * 1000 / intervalRate_FiveChannels;
 
         // Function to update chart dimensions
         function updateChartDimensions(...plots) {
@@ -112,8 +113,7 @@ export default function setupCharting(dataEmitter) {
 
         // Define the window size (e.g., 10 seconds)
         const windowSize = 1; // how far we go back in seconds
-        const intervalRate = 1; // server sends data every 1ms
-        const maxDataPoints = windowSize * 1000 / intervalRate;
+        const maxDataPoints = windowSize * 1000 / intervalRate_TwoChannels;
 
         // Function to update chart dimensions
         function updateChartDimensions(uplot1, uplot2) {
