@@ -78,10 +78,13 @@ TODO : monitor buffer and latency :
 
 
 
-Sending data at 1ms intervals is extremely fast, and this can overload the WebSocket buffer if the sending rate exceeds the underlying system's capacity to send data out over the network. To monitor the process and see what's happening with your data in real time, you would typically do the following:
+Sending data at 1ms intervals is extremely fast, and this can overload the WebSocket buffer if the sending rate exceeds the
+underlying system's capacity to send data out over the network. To monitor the process and see what's happening with your data in real time,
+you would typically do the following:
 
 1. **Buffer Monitoring**: Track the amount of data in the WebSocket buffer to see if it's building up over time.
-2. **Latency Monitoring**: Measure the time it takes from when you put the data into the buffer to when the `on('drain')` event is emitted, which indicates that the data has been flushed from the buffer.
+2. **Latency Monitoring**: Measure the time it takes from when you put the data into the buffer to when the `on('drain')`
+ event is emitted, which indicates that the data has been flushed from the buffer.
 
 Here's how you can incorporate this into your server code:
 
@@ -124,13 +127,17 @@ wss.on('connection', (ws: WebSocket) => {
 // ... rest of the server setup code ...
 ```
 
-**Monitoring buffer size**: In this code snippet, the `bufferIsFull` variable will become `true` if the WebSocket's internal buffer is full. The WebSocket's `send` function will return `false` in this case, as per the Node.js stream backpressure concept.
+**Monitoring buffer size**: In this code snippet, the `bufferIsFull` variable will become `true` if the WebSocket's
+ internal buffer is full. The WebSocket's `send` function will return `false` in this case, as per the Node.js stream backpressure concept.
 
-**Monitoring latency**: The acknowledgment callback in the `ws.send` method is called when the data has actually been transmitted. If you track when you send a message and when the callback is called, you can measure the latency.
+**Monitoring latency**: The acknowledgment callback in the `ws.send` method is called when the data has actually been transmitted.
+ If you track when you send a message and when the callback is called, you can measure the latency.
 
-Additionally, you may want to implement some backpressure mechanism, like pausing the data generation when the buffer is full and resuming it once the 'drain' event is emitted.
+Additionally, you may want to implement some backpressure mechanism, like pausing the data generation when the buffer is full and
+resuming it once the 'drain' event is emitted.
 
-Keep in mind that trying to send data at 1ms intervals will likely cause issues with most networks and can be very resource-intensive for the server. It is often necessary to batch messages or send them at a less frequent interval to ensure the system's stability.
+Keep in mind that trying to send data at 1ms intervals will likely cause issues with most networks and can be very resource-intensive
+for the server. It is often necessary to batch messages or send them at a less frequent interval to ensure the system's stability.
 
 
 

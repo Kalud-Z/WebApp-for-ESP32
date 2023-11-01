@@ -13,7 +13,16 @@ ws.onopen = function (event) {
     console.log('WebSocket connection established');
 };
 
+let lastFrameTime = Date.now();
+
 ws.onmessage = function (event) {
+    let now = Date.now();
+    let frameDelay = now - lastFrameTime;
+    lastFrameTime = now;
+
+    // Log or display the delay somewhere
+    console.log(`Time since last frame: ${frameDelay}ms`);
+
     if (typeof event.data === 'string') {
         const message = JSON.parse(event.data);
         if (message.type === 'configuration') {
@@ -40,7 +49,9 @@ ws.onmessage = function (event) {
             const timestampNs = view.getBigUint64(0);
             const rd = view.getUint32(8);
             const ird = view.getUint32(12);
-            dataEmitter.emit('data', { timestampNs, rd, ird });
+            const dataPointID = view.getUint32(16);
+            console.log('dataPointID : ', dataPointID);
+            dataEmitter.emit('data', { timestampNs, rd, ird , dataPointID });
         }
     }
 };
