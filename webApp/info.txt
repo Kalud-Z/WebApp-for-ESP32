@@ -1,0 +1,21 @@
+sample of data :
+
+main.js:26 Timestamp: 69851446855517ns, Sensor 1: 14649291, Sensor 2: 12487845
+main.js:26 Timestamp: 69851466302233ns, Sensor 1: 14402704, Sensor 2: 14796734
+main.js:26 Timestamp: 69851487062470ns, Sensor 1: 15614628, Sensor 2: 11491350
+main.js:26 Timestamp: 69851507483720ns, Sensor 1: 12310360, Sensor 2: 12644585
+main.js:26 Timestamp: 69851527875413ns, Sensor 1: 10600646, Sensor 2: 14416477
+main.js:26 Timestamp: 69851548173614ns, Sensor 1: 14408249, Sensor 2: 12012497
+main.js:26 Timestamp: 69851568404020ns, Sensor 1: 16183627, Sensor 2: 12638325
+main.js:26 Timestamp: 69851588720610ns, Sensor 1: 14717620, Sensor 2: 15897696
+main.js:26 Timestamp: 69851609152802ns, Sensor 1: 16224491, Sensor 2: 15191463
+main.js:26 Timestamp: 69851629568547ns, Sensor 1: 11544652, Sensor 2: 10074017
+main.js:26 Timestamp: 69851649921329ns, Sensor 1: 12846511, Sensor 2: 15055742
+main.js:26 Timestamp: 69851669336518ns, Sensor 1: 15373474, Sensor 2: 10165110
+main.js:26 Timestamp: 69851689773963ns, Sensor 1: 15640336, Sensor 2: 10658894
+main.js:26 Timestamp: 69851710193543ns, Sensor 1: 14039678, Sensor 2: 12292174
+main.js:26 Timestamp: 69851730456926ns, Sensor 1: 15734832, Sensor 2: 13527457
+main.js:26 Timestamp: 69851750720488ns, Sensor 1: 10796437, Sensor 2: 12569413
+
+
+#############################################################################################################
