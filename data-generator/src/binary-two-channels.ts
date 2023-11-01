@@ -14,11 +14,9 @@ app.get('/', (req, res) => {
     res.send('Hello, this is a WebSocket server!');
 });
 
-
-
-
 wss.on('connection', (ws: WebSocket) => {
     console.log('WebSocket connection established');
+    ws.send(JSON.stringify({ type: 'configuration', channels: 2 }));
 
     let totalBytesSent = 0;
     let lastLoggedTime = Date.now();
@@ -46,7 +44,6 @@ wss.on('connection', (ws: WebSocket) => {
         return buffer;
     };
 
-
     // Send sensor data at a rate of 16Hz (every 62.5ms)
     const intervalId = setInterval(() => {
         const dataBuffer = generateDummySensorData();
@@ -59,9 +56,10 @@ wss.on('connection', (ws: WebSocket) => {
             totalBytesSent = 0; // Reset the counter
             lastLoggedTime = Date.now();
         }
-    }, 20);
+    }, 1);
     // 62.5ms = 16Hz : max Data rate: 441 bytes per second
-    // 20ms   = 50Hz : max Data rate: 1269 bytes per second
+    // 20ms   = 50Hz : max Data rate: 1,269 bytes per second (this is what the current sample rate of the dev board)
+    // 1ms    = 1000Hz :max Data rate: 14,500 bytes per second ==> issues of latency and data loss
 
 
     // Stop sending after 30 seconds
@@ -115,8 +113,6 @@ server.listen(process.env.PORT || 8999, () => {
 // --------------------------------------------------------
 
 // [2]
-
-//
 // why 4 bytes for each channel ?
 // Dealing with non-standard data sizes can add complexity to the code,
 // as standard types and operations are typically designed

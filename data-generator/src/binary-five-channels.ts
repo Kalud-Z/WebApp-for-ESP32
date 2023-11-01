@@ -17,8 +17,12 @@ app.get('/', (req, res) => {
 wss.on('connection', (ws: WebSocket) => {
     console.log('WebSocket connection established');
 
+    // Send the configuration message to the client
+    ws.send(JSON.stringify({ type: 'configuration', channels: 5 }));
+
     let totalBytesSent = 0;
     let lastLoggedTime = Date.now();
+    let secondsElapsed = 0;
 
     // Function to generate dummy sensor data as a binary buffer
     const generateDummySensorDataBinary = () => {
@@ -39,7 +43,6 @@ wss.on('connection', (ws: WebSocket) => {
         return buffer;
     };
 
-
     // Send binary sensor data at a specified rate
     const intervalId = setInterval(() => {
         const dataBuffer = generateDummySensorDataBinary();
@@ -48,14 +51,15 @@ wss.on('connection', (ws: WebSocket) => {
 
         // Logging the data rate
         if (Date.now() - lastLoggedTime >= 1000) {
-            console.log(`Data rate: ${totalBytesSent} bytes per second`);
+            secondsElapsed++; // Increment the seconds elapsed counter
+            console.log(`${secondsElapsed}. Data rate: ${totalBytesSent} bytes per second`);
             totalBytesSent = 0;
             lastLoggedTime = Date.now();
         }
-    }, 10); // Adjust the interval as needed
-    //10ms = max Data rate: 5,795 bytes per second
-    //5ms  = max Data rate: 11,712 bytes per second
-    //1ms  = max Data rate: 54,412 bytes per second  [rate of 1000Hz]
+    }, 1); // adjust the interval as needed
+    //10ms = max Data rate: 5,795 bytes per second                    => latency : 0ms.
+    //5ms  = max Data rate: 11,712 bytes per second                   => latency : 0ms
+    //1ms  = max Data rate: 54,412 bytes per second  [rate of 1000Hz] => latency : +30s + data loss i think.
 
     // Stop sending after 30 seconds
     setTimeout(() => {
