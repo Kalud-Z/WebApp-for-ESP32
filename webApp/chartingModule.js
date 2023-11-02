@@ -20,7 +20,7 @@ export default function setupCharting(dataEmitter) {
 
         // Define uPlot options for RD and IRD
         const optionsRD = createOptions("Channel 1 RD Data", "red");
-        const optionsIRD = createOptions("Channel 1 IRD Data", "blue");
+        const optionsIRD = createOptions("Channel 2 IRD Data", "blue");
 
         // Create containers for the charts
         const containerRD = createChartContainer();
@@ -103,3 +103,11 @@ function updateChartData(dataArray, ids, values, maxDataPoints) {
         dataArray.forEach(channel => channel.splice(0, channel.length - maxDataPoints));
     }
 }
+
+
+// Call this function whenever you add or remove charts
+function updateGridRows() {
+    const chartCount = document.querySelectorAll('.chart-container').length;
+    document.body.style.gridTemplateRows = `repeat(${chartCount}, 1fr)`;
+}
+

@@ -1,7 +1,24 @@
+html, body {
+    height: 100%; /* Ensure that the html element also takes up the full viewport height */
+    margin: 0; /* Remove any default margin */
+    padding: 0; /* Remove any default padding */
+    overflow: hidden; /* Prevent any overflow to ensure no scrolling */
+}
+
+body {
+    padding-top: 2rem;
+    height: 100%;
+    display: grid;
+    grid-template-rows: repeat(2, 1fr); /* Adjust the repeat number to match the number of charts */
+    row-gap: 1rem;
+    align-content: start; /* Align the content to the top */
+}
+
 .chart-container {
-    display: flex; /* This makes it a flex container */
-    justify-content: center; /* This centers the content horizontally */
-    align-items: center; /* This centers the content vertically */
-    padding-left: 10px;
-    border: 3px solid yellow;
+    width: 100%; /* Each chart container will take the full width of the grid cell */
+    height: 70%;
+    /*border: 3px solid yellow; !* This is just for visualisation, can be removed *!*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
