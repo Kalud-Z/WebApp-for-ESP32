@@ -161,9 +161,20 @@ export default function setupCharting(dataEmitter) {
         });
 
         // Initialize uPlot for each channel
+        // const uplots = options.map((option, index) => {
+        //     const dataChannel = data[index];
+        //     const container = containers[index];
+        //     const uplot = new uPlot(option, dataChannel, container);
+        //
+        //     let now = Date.now();
+        //     uplot.setScale('x', { min: now - windowSize * 1000, max: now });
+        //
+        //     return uplot;
+
+        // Initialize uPlot for each channel
         const uplots = options.map((option, index) => {
             const dataChannel = data[index];
-            const container = containers[index];
+            const container = document.getElementById(`bioplot${index + 1}`); // Select the correct container by ID
             const uplot = new uPlot(option, dataChannel, container);
 
             let now = Date.now();
@@ -318,8 +329,6 @@ export default function setupCharting(dataEmitter) {
         });
     }
 };
-
-
 
 
 
