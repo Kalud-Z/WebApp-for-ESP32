@@ -1,0 +1,7 @@
+.chart-container {
+    display: flex; /* This makes it a flex container */
+    justify-content: center; /* This centers the content horizontally */
+    align-items: center; /* This centers the content vertically */
+    padding-left: 10px;
+    border: 3px solid yellow;
+}

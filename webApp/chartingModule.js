@@ -14,17 +14,17 @@ export default function setupCharting(dataEmitter) {
 
         const maxDataPoints = ((1000 / intervalRate_TwoChannels) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
 
-        // Define uPlot options for the sensor
+// Define uPlot options for the sensor
         const options = {
             title: "Channel 1 Data",
             id: "bioplot1",
             class: "my-chart",
-            width: window.innerWidth * 0.8,
-            height: window.innerHeight * 0.5,
+            width: 0,
+            height: 0,
             series: [
                 {
                     label: "ID",
-                    value: (self, rawValue) => `ID: ${rawValue}` // Formatting the tooltip to show ID
+                    value: (u, value) => `ID: ${value}` // Custom format for the tooltip
                 },
                 {
                     label: "RD",
@@ -35,7 +35,7 @@ export default function setupCharting(dataEmitter) {
                 {
                     stroke: "black",
                     grid: { show: true },
-                    values: (self, ticks) => ticks.map(rawValue => `ID: ${rawValue}`), // Formatting the axis to show ID
+                    values: (u, ticks) => ticks.map(tick => `ID: ${tick}`) // Custom format for the x-axis labels
                 },
                 {
                     stroke: "black",
@@ -44,15 +44,27 @@ export default function setupCharting(dataEmitter) {
             ],
         };
 
+
         // Create container for the chart
         const container = document.createElement('div');
         document.body.appendChild(container);
+        container.classList.add('chart-container');
 
         // Initialize uPlot for the sensor
         let uplot = new uPlot(options, data1, container);
 
-        // You do not need to set the scale for the x-axis since we are using IDs
-        // Remove the initial scale setting for x-axis
+
+        // Since the container is appended and styles may not be applied immediately,
+        // you may use requestAnimationFrame or setTimeout to allow the browser to render the styles
+        requestAnimationFrame(() => {
+            // Now get the computed width and height
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            // Call setSize with the container's dimensions
+            uplot.setSize({ width: containerWidth , height: containerHeight });
+        });
+
 
         dataEmitter.on('dataBatch', (batchData) => {
             console.log('this is batchData : ', batchData);
