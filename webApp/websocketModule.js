@@ -64,12 +64,16 @@ ws.onmessage = function (event) {
 
         if (numberOfChannels === 5) {
             const arrayBuffer = event.data;
-            const datapointSize = 32; // Each datapoint is 32 bytes for 5 channels
-            const numberOfDataPoints = arrayBuffer.byteLength/datapointSize;
+            const datapointSize = 32; // Corrected datapoint size according to server code
+            const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
 
             let batchData = {
                 timestamps: [],
-                channelValues: Array.from({ length: 5 }, () => []), // Create 5 arrays for the 5 channels
+                channel1Values: [],
+                channel2Values: [],
+                channel3Values: [],
+                channel4Values: [],
+                channel5Values: [],
                 dataPointIDs: []
             };
 
@@ -78,16 +82,20 @@ ws.onmessage = function (event) {
                 const view = new DataView(arrayBuffer, offset, datapointSize);
 
                 batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
-                // Retrieve and store data for each channel
-                for (let j = 0; j < 5; j++) {
-                    batchData.channelValues[j].push(view.getUint32(8 + (j * 4)));
-                }
+                // Correctly reading each channel value which takes up 4 bytes
+                batchData.channel1Values.push(view.getUint32(8));
+                batchData.channel2Values.push(view.getUint32(12));
+                batchData.channel3Values.push(view.getUint32(16));
+                batchData.channel4Values.push(view.getUint32(20));
+                batchData.channel5Values.push(view.getUint32(24));
+                // Correctly reading the dataPointID which takes up the last 4 bytes of the 32-byte data point
                 batchData.dataPointIDs.push(view.getUint32(28));
             }
 
-            // console.log('Batch data for 5 channels: ', batchData);
             dataEmitter.emit('dataBatch', batchData);
         }
+
+
 
     }
 
@@ -99,7 +107,6 @@ ws.onmessage = function (event) {
         console.log('WebSocket connection closed');
     };
 }
-
 
 
 
