@@ -23,31 +23,45 @@ wss.on('connection', (ws: WebSocket) => {
     let totalBytesSent = 0;
     let lastLoggedTime = Date.now();
     let secondsElapsed = 0;
+    let dataPointId = 0; // Initialize the ID counter
+    const gapBetweenTimeStamps_inMilliSeconds = 1;
+
+
 
     // Function to generate dummy sensor data as a binary buffer
-    const generateDummySensorDataBinary = () => {
-        const ns = process.hrtime.bigint(); // Simulated nanoseconds
+    const generateDummySensorDataBatch = () => {
+        const dataPoints = [];
+        let ns = process.hrtime.bigint(); // Initial timestamp in nanoseconds
+        const nsGap = BigInt(gapBetweenTimeStamps_inMilliSeconds) * BigInt(1_000_000); // Gap in nanoseconds
 
-        // Creating a buffer with 8 bytes for bigint and 4 bytes for each sensor value
-        const buffer = Buffer.alloc(8 + 4 * 5);
+        for (let i = 0; i < 10; i++) {
+            const min = 10000000; // Minimum value for the channel data
+            const max = 16777215; // Maximum value for the channel data
 
-        // Write the timestamp as bigint (8 bytes)
-        buffer.writeBigUInt64BE(ns, 0);
+            const buffer = Buffer.alloc(32);
+            buffer.writeBigUInt64BE(ns, 0);
 
-        // Generating and writing random values for 5 channels, each between 10,000,000 and 16,777,215
-        for (let i = 0; i < 5; i++) {
-            const value = Math.floor(Math.random() * (16777215 - 10000000 + 1)) + 10000000;
-            buffer.writeUInt32BE(value, 8 + i * 4); // Write each value as a 4-byte unsigned integer
+            // Write the data for the five channels
+            for (let j = 0; j < 5; j++) {
+                const channelValue = Math.floor(Math.random() * (max - min + 1)) + min;
+                buffer.writeUInt32BE(channelValue, 8 + (j * 4));
+            }
+
+            buffer.writeUInt32BE(dataPointId++, 28); // Write the ID at the end
+            dataPoints.push(buffer);
+
+            ns = ns + nsGap; // Increment timestamp by the gap for the next data point
         }
 
-        return buffer;
+        return Buffer.concat(dataPoints);
     };
+
 
     // Send binary sensor data at a specified rate
     const intervalId = setInterval(() => {
-        const dataBuffer = generateDummySensorDataBinary();
-        totalBytesSent += dataBuffer.length;
-        ws.send(dataBuffer);
+        const dataBufferBatch = generateDummySensorDataBatch();
+        totalBytesSent += dataBufferBatch.length;
+        ws.send(dataBufferBatch); // Send the batch as binary data
 
         // Logging the data rate
         if (Date.now() - lastLoggedTime >= 1000) {
@@ -55,11 +69,9 @@ wss.on('connection', (ws: WebSocket) => {
             console.log(`${secondsElapsed}. Data rate: ${totalBytesSent} bytes per second`);
             totalBytesSent = 0;
             lastLoggedTime = Date.now();
+            console.log(`Current bufferedAmount: ${ws.bufferedAmount}`);
         }
-    }, 1); // adjust the interval as needed
-    //10ms = max Data rate: 5,795 bytes per second                    => latency : 0ms.
-    //5ms  = max Data rate: 11,712 bytes per second                   => latency : 0ms
-    //1ms  = max Data rate: 54,412 bytes per second  [rate of 1000Hz] => latency : +30s + data loss i think.
+    }, gapBetweenTimeStamps_inMilliSeconds * 10); // adjust the interval as needed
 
     // Stop sending after 30 seconds
     setTimeout(() => {
@@ -79,7 +91,6 @@ wss.on('connection', (ws: WebSocket) => {
 
 
 //#######################################################################################################################
-// Start our server
 server.listen(process.env.PORT || 8999, () => {
     const port = (server.address() as AddressInfo).port;
     console.log(`Binary - Five channels | Server started on port ${port} :)`);

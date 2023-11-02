@@ -4,100 +4,197 @@ const intervalRate_TwoChannels = 10; // in ms. the rate at which the server send
 const intervalRate_FiveChannels = 10; //in ms. the rate at which the server sends the data.
 
 export default function setupCharting(dataEmitter) {
-    if(numberOfChannels === 5) {
+    if (numberOfChannels === 5) {
         // Define initial data arrays for the five channels
-        let channels = Array.from({ length: 5 }, () => [[], []]);
+        let data = Array.from({ length: 5 }, () => [
+            [], // timestamps
+            []  // channel data
+        ]);
 
-        // Define the window size (e.g., 3 seconds)
-        const windowSize = 1; // showing data in the 3 seconds
+        // Define the window size
+        const windowSize = 5; // how far we go back in seconds
         const maxDataPoints = windowSize * 1000 / intervalRate_FiveChannels;
 
         // Function to update chart dimensions
-        function updateChartDimensions(...plots) {
+        function updateChartDimensions(...charts) {
             const width = window.innerWidth;
-            const height = (window.innerHeight * 0.7) / plots.length;
-            plots.forEach(plot => plot.setSize({ width, height }));
+            const height = (window.innerHeight * 0.7) / 5; // Divide the window height for each chart
+            for (const chart of charts) {
+                chart.setSize({ width, height });
+            }
         }
 
         // Define uPlot options for each channel
-        const colors = ['red', 'blue', 'green', 'purple', 'orange'];
-        const createOptions = (index) => ({
-            title: `Channel ${index + 1} Data`,
-            id: `bioplot${index + 1}`,
-            class: "my-chart",
-            width: window.innerWidth,
-            height: (window.innerHeight * 0.7) / 5,
-            series: [
-                {},
-                {
-                    label: `CH${index + 1}`,
-                    stroke: colors[index],
-                }
-            ],
-            axes: [
-                {
-                    stroke: "black",
-                    grid: { show: true },
-                },
-                {
-                    stroke: "black",
-                    grid: { show: true },
-                }
-            ],
-        });
+        const options = [
+            {
+                title: "Channel 1 Data",
+                id: "bioplot1",
+                class: "my-chart",
+                width: window.innerWidth,
+                height: (window.innerHeight * 0.7) / 5, // Divide the window height
+                series: [
+                    {},
+                    {
+                        label: "Channel 1",
+                        stroke: "red",
+                    }
+                ],
+                axes: [
+                    {
+                        auto: false,
+                        stroke: "black",
+                        grid: { show: true },
+                    },
+                    {
+                        stroke: "black",
+                        grid: { show: true },
+                    }
+                ],
+            },
+            {
+                title: "Channel 2 Data",
+                id: "bioplot2",
+                class: "my-chart",
+                width: window.innerWidth,
+                height: (window.innerHeight * 0.7) / 5, // Divide the window height
+                series: [
+                    {},
+                    {
+                        label: "Channel 2",
+                        stroke: "green",
+                    }
+                ],
+                axes: [
+                    {
+                        auto: false,
+                        stroke: "black",
+                        grid: { show: true },
+                    },
+                    {
+                        stroke: "black",
+                        grid: { show: true },
+                    }
+                ],
+            },
+            {
+                title: "Channel 3 Data",
+                id: "bioplot3",
+                class: "my-chart",
+                width: window.innerWidth,
+                height: (window.innerHeight * 0.7) / 5, // Divide the window height
+                series: [
+                    {},
+                    {
+                        label: "Channel 3",
+                        stroke: "blue",
+                    }
+                ],
+                axes: [
+                    {
+                        auto: false,
+                        stroke: "black",
+                        grid: { show: true },
+                    },
+                    {
+                        stroke: "black",
+                        grid: { show: true },
+                    }
+                ],
+            },
+            {
+                title: "Channel 4 Data",
+                id: "bioplot4",
+                class: "my-chart",
+                width: window.innerWidth,
+                height: (window.innerHeight * 0.7) / 5, // Divide the window height
+                series: [
+                    {},
+                    {
+                        label: "Channel 4",
+                        stroke: "orange",
+                    }
+                ],
+                axes: [
+                    {
+                        auto: false,
+                        stroke: "black",
+                        grid: { show: true },
+                    },
+                    {
+                        stroke: "black",
+                        grid: { show: true },
+                    }
+                ],
+            },
+            {
+                title: "Channel 5 Data",
+                id: "bioplot5",
+                class: "my-chart",
+                width: window.innerWidth,
+                height: (window.innerHeight * 0.7) / 5, // Divide the window height
+                series: [
+                    {},
+                    {
+                        label: "Channel 5",
+                        stroke: "purple",
+                    }
+                ],
+                axes: [
+                    {
+                        auto: false,
+                        stroke: "black",
+                        grid: { show: true },
+                    },
+                    {
+                        stroke: "black",
+                        grid: { show: true },
+                    }
+                ],
+            },
+        ];
 
-        // Create containers and initialize uPlot for each channel
-        let plots = channels.map((data, index) => {
+        // Create containers for each chart
+        const containers = options.map((_, index) => {
             const container = document.createElement('div');
             document.body.appendChild(container);
-            return new uPlot(createOptions(index), data, container);
+            return container;
+        });
+
+        // Initialize uPlot for each channel
+        const uplots = options.map((option, index) => {
+            const dataChannel = data[index];
+            const container = containers[index];
+            const uplot = new uPlot(option, dataChannel, container);
+
+            let now = Date.now();
+            uplot.setScale('x', { min: now - windowSize * 1000, max: now });
+
+            return uplot;
         });
 
         // Update chart dimensions on window resize
-        window.addEventListener('resize', () => updateChartDimensions(...plots));
+        window.addEventListener('resize', () => updateChartDimensions(...uplots));
 
-        // Listen to the 'data' event from the WebSocket module
-        dataEmitter.on('data', (data) => {
-            // Destructure the data object to extract channel values
-            const { timestampNs, ch1, ch2, ch3, ch4, ch5 } = data;
-
-            // Convert nanoseconds to seconds for the timestamp
-            let timestamp = Number(timestampNs) / 1e9;
-
-            // Update the data arrays for each channel
-            // Now directly using the channel values received in the data object
-            channels[0][0].push(timestamp);
-            channels[0][1].push(ch1);
-
-            channels[1][0].push(timestamp);
-            channels[1][1].push(ch2);
-
-            channels[2][0].push(timestamp);
-            channels[2][1].push(ch3);
-
-            channels[3][0].push(timestamp);
-            channels[3][1].push(ch4);
-
-            channels[4][0].push(timestamp);
-            channels[4][1].push(ch5);
-
-            // If we have more data points than the window size, remove the oldest ones
-            if (channels[0][0].length > maxDataPoints) {
-                channels.forEach(channel => {
-                    channel[0].shift(); // Shift timestamps
-                    channel[1].shift(); // Shift data points
-                });
+        dataEmitter.on('dataBatch', (batchData) => {
+            // Update the data arrays for each channel with batch data
+            for (let i = 0; i < 5; i++) {
+                data[i][0].push(...batchData.timestamps);
+                data[i][1].push(...batchData.channelValues[i]);
             }
 
-            // Update the charts and adjust the scales for the sliding effect
-            let min = timestamp - windowSize;
-            let max = timestamp;
-            plots.forEach((plot, index) => {
-                plot.setData(channels[index]);
-                plot.setScale('x', { min: min, max: max });
-            });
+            // Trim the data arrays if they're longer than maxDataPoints
+            for (let i = 0; i < 5; i++) {
+                if (data[i][0].length > maxDataPoints) {
+                    data[i].forEach(channel => channel.splice(0, channel.length - maxDataPoints));
+                }
+            }
+
+            // Update the charts
+            uplots.forEach((uplot, index) => uplot.setData(data[index]));
         });
     }
+
+
 
     if(numberOfChannels === 2) {
         // Define initial data arrays for the two channels
@@ -221,6 +318,9 @@ export default function setupCharting(dataEmitter) {
         });
     }
 };
+
+
+
 
 
 
