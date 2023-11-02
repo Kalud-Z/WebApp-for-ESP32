@@ -60,6 +60,34 @@ ws.onmessage = function (event) {
 
             dataEmitter.emit('dataBatch', batchData);
         }
+
+        if (numberOfChannels === 5) {
+            const arrayBuffer = event.data;
+            const datapointSize = 32; // Each datapoint is 32 bytes for 5 channels
+            const numberOfDataPoints = arrayBuffer.byteLength/datapointSize;
+
+            let batchData = {
+                timestamps: [],
+                channelValues: Array.from({ length: 5 }, () => []), // Create 5 arrays for the 5 channels
+                dataPointIDs: []
+            };
+
+            for (let i = 0; i < numberOfDataPoints; i++) {
+                const offset = i * datapointSize;
+                const view = new DataView(arrayBuffer, offset, datapointSize);
+
+                batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
+                // Retrieve and store data for each channel
+                for (let j = 0; j < 5; j++) {
+                    batchData.channelValues[j].push(view.getUint32(8 + (j * 4)));
+                }
+                batchData.dataPointIDs.push(view.getUint32(28));
+            }
+
+            // console.log('Batch data for 5 channels: ', batchData);
+            dataEmitter.emit('dataBatch', batchData);
+        }
+
     }
 
     ws.onerror = function (error) {
