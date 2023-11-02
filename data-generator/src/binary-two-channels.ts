@@ -19,6 +19,7 @@ wss.on('connection', (ws: WebSocket) => {
     ws.send(JSON.stringify({ type: 'configuration', channels: 2 }));
 
     let totalBytesSent = 0;
+    let totalBytesSentFinal = 0;
     let lastLoggedTime = Date.now();
     let secondsElapsed = 0;
     let dataPointId = 0; // Initialize the ID counter
@@ -54,6 +55,7 @@ wss.on('connection', (ws: WebSocket) => {
     const intervalId = setInterval(() => {
         const dataBufferBatch = generateDummySensorDataBatch();
         totalBytesSent += dataBufferBatch.length;
+        totalBytesSentFinal += dataBufferBatch.length;
         ws.send(dataBufferBatch); // Send the batch as binary data
 
         // Every second, log the data rate and reset the counter
@@ -77,6 +79,7 @@ wss.on('connection', (ws: WebSocket) => {
     setTimeout(() => {
         clearInterval(intervalId);
         ws.close(); // Optionally close the connection when done
+        console.log(`Total amount of data sent: ${bytesToKilobytes(totalBytesSentFinal) } kb.`);
     }, 30000);
 
     // Set up event listener for client messages, if needed
@@ -93,6 +96,9 @@ wss.on('connection', (ws: WebSocket) => {
 
 
 
+function bytesToKilobytes(bytes: number) {
+    return bytes / 1024;
+}
 
 
 

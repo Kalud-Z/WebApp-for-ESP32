@@ -303,8 +303,8 @@ export default function setupCharting(dataEmitter) {
                 data2.forEach(channel => channel.splice(0, channel.length - maxDataPoints));
             }
 
-            console.log('this is data1 : ', data1)
-            console.log('§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§')
+            // console.log('this is data1 : ', data1)
+            // console.log('§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§')
 
             // Update the charts
             uplot1.setData(data1);

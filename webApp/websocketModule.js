@@ -3,6 +3,8 @@ class WebSocketEmitter extends EventEmitter {}
 
 export const dataEmitter = new WebSocketEmitter();
 
+let totalReceivedBytes = 0;
+
 const ws = new WebSocket('ws://localhost:8999');
 
 export let numberOfChannels;
@@ -30,6 +32,10 @@ ws.onmessage = function (event) {
             dataEmitter.emit('configuration', numberOfChannels);
         }
     } else {
+        const receivedBytes = event.data.byteLength;
+        totalReceivedBytes += receivedBytes;
+        console.log(`Received ${receivedBytes} bytes in this message. Total received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+
         if (numberOfChannels === 5) {
             const arrayBuffer = event.data;
             const datapointSize = 32; // Each datapoint is 32 bytes for 5 channels
@@ -57,7 +63,6 @@ ws.onmessage = function (event) {
             dataEmitter.emit('dataBatch', batchData);
         }
 
-        // Handling binary data for two channels, now with batches of 10 datapoints
         if (numberOfChannels === 2) {
             const arrayBuffer = event.data;
             const datapointSize = 20; // Each datapoint is 20 bytes
@@ -80,8 +85,8 @@ ws.onmessage = function (event) {
                 batchData.dataPointIDs.push(view.getUint32(16));
             }
 
-            console.log('this is batchData : ', batchData);
-            console.log('################################')
+            // console.log('this is batchData : ', batchData);
+            // console.log('################################')
             dataEmitter.emit('dataBatch', batchData);
         }
     }
@@ -95,6 +100,12 @@ ws.onmessage = function (event) {
     };
 }
 
+
+
+
+function bytesToKilobytes(bytes) {
+    return bytes / 1024;
+}
 
 
 
