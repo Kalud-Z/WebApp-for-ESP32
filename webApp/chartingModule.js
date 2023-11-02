@@ -6,7 +6,6 @@ const timeFrameOfVisibleData = 5; // in seconds.
 
 export default function setupCharting(dataEmitter) {
     if (numberOfChannels === 2) {
-        // Define initial data arrays for the channel
         let data1 = [
             [], // IDs for the x-axis
             []  // Channel 1 data
@@ -14,7 +13,6 @@ export default function setupCharting(dataEmitter) {
 
         const maxDataPoints = ((1000 / intervalRate_TwoChannels) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
 
-// Define uPlot options for the sensor
         const options = {
             title: "Channel 1 Data",
             id: "bioplot1",
@@ -40,8 +38,10 @@ export default function setupCharting(dataEmitter) {
                 {
                     stroke: "black",
                     grid: { show: true },
+                    size : 70,
                 }
             ],
+
         };
 
 
@@ -53,15 +53,9 @@ export default function setupCharting(dataEmitter) {
         // Initialize uPlot for the sensor
         let uplot = new uPlot(options, data1, container);
 
-
-        // Since the container is appended and styles may not be applied immediately,
-        // you may use requestAnimationFrame or setTimeout to allow the browser to render the styles
         requestAnimationFrame(() => {
-            // Now get the computed width and height
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
-
-            // Call setSize with the container's dimensions
             uplot.setSize({ width: containerWidth , height: containerHeight });
         });
 
