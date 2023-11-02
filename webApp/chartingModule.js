@@ -6,74 +6,100 @@ const timeFrameOfVisibleData = 5; // in seconds.
 
 export default function setupCharting(dataEmitter) {
     if (numberOfChannels === 2) {
-        let data1 = [
+        let dataRD = [
             [], // IDs for the x-axis
-            []  // Channel 1 data
+            []  // RD data
+        ];
+
+        let dataIRD = [
+            [], // IDs for the x-axis (shared with RD)
+            []  // IRD data
         ];
 
         const maxDataPoints = ((1000 / intervalRate_TwoChannels) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
 
-        const options = {
-            title: "Channel 1 Data",
-            id: "bioplot1",
-            class: "my-chart",
-            width: 0,
-            height: 0,
-            series: [
-                {
-                    label: "ID",
-                    value: (u, value) => `ID: ${value}` // Custom format for the tooltip
-                },
-                {
-                    label: "RD",
-                    stroke: "red",
-                }
-            ],
-            axes: [
-                {
-                    stroke: "black",
-                    grid: { show: true },
-                    values: (u, ticks) => ticks.map(tick => `ID: ${tick}`) // Custom format for the x-axis labels
-                },
-                {
-                    stroke: "black",
-                    grid: { show: true },
-                    size : 70,
-                }
-            ],
+        // Define uPlot options for RD and IRD
+        const optionsRD = createOptions("Channel 1 RD Data", "red");
+        const optionsIRD = createOptions("Channel 1 IRD Data", "blue");
 
-        };
+        // Create containers for the charts
+        const containerRD = createChartContainer();
+        const containerIRD = createChartContainer();
 
+        // Initialize uPlot for RD
+        let uplotRD = new uPlot(optionsRD, dataRD, containerRD);
+        // Initialize uPlot for IRD
+        let uplotIRD = new uPlot(optionsIRD, dataIRD, containerIRD);
 
-        // Create container for the chart
-        const container = document.createElement('div');
-        document.body.appendChild(container);
-        container.classList.add('chart-container');
+        // Setup charts with proper sizing
+        setupChartSize(uplotRD, containerRD);
+        setupChartSize(uplotIRD, containerIRD);
 
-        // Initialize uPlot for the sensor
-        let uplot = new uPlot(options, data1, container);
-
-        requestAnimationFrame(() => {
-            const containerWidth = container.clientWidth;
-            const containerHeight = container.clientHeight;
-            uplot.setSize({ width: containerWidth , height: containerHeight });
-        });
-
-
+        // Listen for new batch data
         dataEmitter.on('dataBatch', (batchData) => {
-            console.log('this is batchData : ', batchData);
-            // Update the data array for the sensor with batch IDs and RD values
-            data1[0].push(...batchData.dataPointIDs); // Assuming batchData.ids is the array of IDs
-            data1[1].push(...batchData.rdValues);
+            updateChartData(dataRD, batchData.dataPointIDs, batchData.rdValues, maxDataPoints);
+            updateChartData(dataIRD, batchData.dataPointIDs, batchData.irdValues, maxDataPoints);
 
-            // Trim the data array if it's longer than maxDataPoints
-            if (data1[0].length > maxDataPoints) {
-                console.log('this is maxDataPoints : ', maxDataPoints);
-                data1.forEach(channel => channel.splice(0, channel.length - maxDataPoints));
-            }
-
-            // Update the chart
-            uplot.setData(data1);
+            // Update the charts
+            uplotRD.setData(dataRD);
+            uplotIRD.setData(dataIRD);
         });
     }
-};
+}
+
+
+// ##########################  helping functions  ###############################################################
+function createOptions(title, strokeColor) {
+    return {
+        title: title,
+        id: title.toLowerCase().replace(/\s+/g, ''),
+        class: "my-chart",
+        width: 0,
+        height: 0,
+        series: [
+            {
+                label: "ID",
+                value: (u, value) => `ID: ${value}`
+            },
+            {
+                label: title,
+                stroke: strokeColor,
+            }
+        ],
+        axes: [
+            {
+                stroke: "black",
+                grid: { show: true },
+                values: (u, ticks) => ticks.map(tick => `ID: ${tick}`) // Custom format for the x-axis labels
+            },
+            {
+                stroke: "black",
+                grid: { show: true },
+                size : 70,
+            }
+        ]
+    };
+}
+
+function createChartContainer() {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    container.classList.add('chart-container');
+    return container;
+}
+
+function setupChartSize(uplot, container) {
+    requestAnimationFrame(() => {
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        uplot.setSize({ width: containerWidth, height: containerHeight });
+    });
+}
+
+function updateChartData(dataArray, ids, values, maxDataPoints) {
+    dataArray[0].push(...ids);
+    dataArray[1].push(...values);
+    if (dataArray[0].length > maxDataPoints) {
+        dataArray.forEach(channel => channel.splice(0, channel.length - maxDataPoints));
+    }
+}
