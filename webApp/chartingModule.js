@@ -19,7 +19,7 @@ export default function setupCharting(dataEmitter) {
             title: "Channel 1 Data",
             id: "bioplot1",
             class: "my-chart",
-            width: window.innerWidth * 1,
+            width: window.innerWidth * 0.8,
             height: window.innerHeight * 0.5, // 70% of the window height
             series: [
                 {},
