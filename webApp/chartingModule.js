@@ -6,43 +6,44 @@ const timeFrameOfVisibleData = 5; // in seconds.
 
 export default function setupCharting(dataEmitter) {
     if (numberOfChannels === 2) {
-        let dataRD = [
+        let dataChannel1 = [
             [], // IDs for the x-axis
-            []  // RD data
+            []  // channel1 data
         ];
 
-        let dataIRD = [
+        let dataChannel2 = [
             [], // IDs for the x-axis (shared with RD)
-            []  // IRD data
+            []  // channel2 data
         ];
 
         const maxDataPoints = ((1000 / intervalRate_TwoChannels) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
 
-        // Define uPlot options for RD and IRD
-        const optionsRD = createOptions("Channel 1 RD Data", "red");
-        const optionsIRD = createOptions("Channel 2 IRD Data", "blue");
+        const optionsChannel1 = createOptions("Channel 1 Data", "red");
+        const optionsChannel2 = createOptions("Channel 2  Data", "blue");
 
         // Create containers for the charts
-        const containerRD = createChartContainer();
-        const containerIRD = createChartContainer();
+        const containerChannel1 = createChartContainer();
+        const containerChannel2 = createChartContainer();
 
         // Initialize uPlot for RD
-        let uplotRD = new uPlot(optionsRD, dataRD, containerRD);
+        let uplotChannel1 = new uPlot(optionsChannel1, dataChannel1, containerChannel1);
         // Initialize uPlot for IRD
-        let uplotIRD = new uPlot(optionsIRD, dataIRD, containerIRD);
+        let uplotChannel2 = new uPlot(optionsChannel2, dataChannel2, containerChannel2);
 
         // Setup charts with proper sizing
-        setupChartSize(uplotRD, containerRD);
-        setupChartSize(uplotIRD, containerIRD);
+        setupChartSize(uplotChannel1, containerChannel1);
+        setupChartSize(uplotChannel2, containerChannel2);
 
         // Listen for new batch data
         dataEmitter.on('dataBatch', (batchData) => {
-            updateChartData(dataRD, batchData.dataPointIDs, batchData.rdValues, maxDataPoints);
-            updateChartData(dataIRD, batchData.dataPointIDs, batchData.irdValues, maxDataPoints);
+            // console.log('batchData : ', batchData);
+
+            updateChartData(dataChannel1, batchData.dataPointIDs, batchData.channel1Values, maxDataPoints);
+            updateChartData(dataChannel2, batchData.dataPointIDs, batchData.channel2Values, maxDataPoints);
 
             // Update the charts
-            uplotRD.setData(dataRD);
-            uplotIRD.setData(dataIRD);
+            uplotChannel1.setData(dataChannel1);
+            uplotChannel2.setData(dataChannel2);
         });
     }
 }

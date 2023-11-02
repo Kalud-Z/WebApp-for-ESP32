@@ -6,7 +6,7 @@ html, body {
 }
 
 body {
-    padding-top: 2rem;
+    padding-top: 4rem;
     height: 100%;
     display: grid;
     grid-template-rows: repeat(2, 1fr); /* Adjust the repeat number to match the number of charts */

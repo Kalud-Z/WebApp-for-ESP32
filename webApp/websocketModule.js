@@ -34,7 +34,8 @@ ws.onmessage = function (event) {
     } else {
         const receivedBytes = event.data.byteLength;
         totalReceivedBytes += receivedBytes;
-        console.log(`Received ${receivedBytes} bytes in this message. Total received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+        //logging how much data received so far.
+        // console.log(`Received ${receivedBytes} bytes in this message. Total received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
 
         if (numberOfChannels === 2) {
             const arrayBuffer = event.data;
@@ -43,8 +44,8 @@ ws.onmessage = function (event) {
 
             let batchData = {
                 timestamps: [],
-                rdValues: [],
-                irdValues: [],
+                channel1Values: [],
+                channel2Values: [],
                 dataPointIDs: []
             };
 
@@ -53,8 +54,8 @@ ws.onmessage = function (event) {
                 const view = new DataView(arrayBuffer, offset, datapointSize);
 
                 batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
-                batchData.rdValues.push(view.getUint32(8));
-                batchData.irdValues.push(view.getUint32(12));
+                batchData.channel1Values.push(view.getUint32(8));
+                batchData.channel2Values.push(view.getUint32(12));
                 batchData.dataPointIDs.push(view.getUint32(16));
             }
 
