@@ -1,3 +1,27 @@
+:root {
+    --color-1: red;
+    --color-2: blue;
+    --color-3: green;
+    --color-4: orange;
+    --color-5: purple;
+    --color-6: yellow;
+    --color-7: pink;
+    --color-8: cyan;
+    --color-9: magenta;
+    --color-10: lime;
+    --color-11: maroon;
+    --color-12: olive;
+    --color-13: navy;
+    --color-14: teal;
+    --color-15: aqua;
+    --color-16: coral;
+    --color-17: fuchsia;
+    --color-18: wheat;
+    --color-19: ivory;
+}
+
+
+
 html, body {
     height: 100%; /* Ensure that the html element also takes up the full viewport height */
     margin: 0; /* Remove any default margin */

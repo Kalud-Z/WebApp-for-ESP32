@@ -5,52 +5,42 @@ const howManyDataPointPerBatch = 10;  // The server sends 10 datapoints per batc
 const timeFrameOfVisibleData = 5; // in seconds.
 
 export default function setupCharting(dataEmitter) {
-    if (numberOfChannels === 2) {
-        let dataChannel1 = [
+    let channelsData = [];
+    let uplotInstances = [];
+    const maxDataPoints = ((1000 / intervalRate_TwoChannels) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
+
+    for (let channelIndex = 1; channelIndex <= numberOfChannels; channelIndex++) {
+        channelsData.push([
             [], // IDs for the x-axis
-            []  // channel1 data
-        ];
+            []  // channel data
+        ]);
 
-        let dataChannel2 = [
-            [], // IDs for the x-axis (shared with RD)
-            []  // channel2 data
-        ];
+        console.log('this is channelIndex : ', channelIndex)
+        const options = createOptions(`Channel ${channelIndex} Data`, `color-${channelIndex}`);
+        const container = createChartContainer();
+        const uplot = new uPlot(options, channelsData[channelIndex - 1], container);
 
-        const maxDataPoints = ((1000 / intervalRate_TwoChannels) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
-
-        const optionsChannel1 = createOptions("Channel 1 Data", "red");
-        const optionsChannel2 = createOptions("Channel 2  Data", "blue");
-
-        // Create containers for the charts
-        const containerChannel1 = createChartContainer();
-        const containerChannel2 = createChartContainer();
-
-        // Initialize uPlot for RD
-        let uplotChannel1 = new uPlot(optionsChannel1, dataChannel1, containerChannel1);
-        // Initialize uPlot for IRD
-        let uplotChannel2 = new uPlot(optionsChannel2, dataChannel2, containerChannel2);
-
-        // Setup charts with proper sizing
-        setupChartSize(uplotChannel1, containerChannel1);
-        setupChartSize(uplotChannel2, containerChannel2);
-
-        // Listen for new batch data
-        dataEmitter.on('dataBatch', (batchData) => {
-            // console.log('batchData : ', batchData);
-
-            updateChartData(dataChannel1, batchData.dataPointIDs, batchData.channel1Values, maxDataPoints);
-            updateChartData(dataChannel2, batchData.dataPointIDs, batchData.channel2Values, maxDataPoints);
-
-            // Update the charts
-            uplotChannel1.setData(dataChannel1);
-            uplotChannel2.setData(dataChannel2);
-        });
+        setupChartSize(uplot, container);
+        uplotInstances.push(uplot);
     }
+
+    dataEmitter.on('dataBatch', (batchData) => {
+        for (let channelIndex = 1; channelIndex <= numberOfChannels; channelIndex++) {
+            const channelKey = `channel${channelIndex}Values`;
+            updateChartData(channelsData[channelIndex - 1], batchData.dataPointIDs, batchData[channelKey], maxDataPoints);
+
+            uplotInstances[channelIndex - 1].setData(channelsData[channelIndex - 1]);
+        }
+    });
+
+    updateGridRows();
 }
 
 
 // ##########################  helping functions  ###############################################################
-function createOptions(title, strokeColor) {
+function createOptions(title, colorClassName) {
+    const colorValue = getComputedStyle(document.documentElement).getPropertyValue(`--${colorClassName}`);
+
     return {
         title: title,
         id: title.toLowerCase().replace(/\s+/g, ''),
@@ -64,7 +54,7 @@ function createOptions(title, strokeColor) {
             },
             {
                 label: title,
-                stroke: strokeColor,
+                stroke: colorValue.trim(), // Use the actual color value here
             }
         ],
         axes: [
