@@ -78,9 +78,11 @@ wss.on('connection', (ws: WebSocket) => {
 });
 
 
-//#######################################################################################################################
-// Start our server
-server.listen(process.env.PORT || 8999, () => {
+
+
+
+// Start our server on all IPv4 addresses available to the operating system.
+server.listen(Number(process.env.PORT) || 8999, '0.0.0.0', () => {
     const port = (server.address() as AddressInfo).port;
-    console.log(`Binary - Five channels | Server started on port ${port} :)`);
+    console.log(`Server started on port ${port}`);
 });
