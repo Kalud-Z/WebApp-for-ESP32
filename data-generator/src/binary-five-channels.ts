@@ -30,6 +30,8 @@ wss.on('connection', (ws: WebSocket) => {
     let dataPointId = 0; // Initialize the ID counter
     let totalDataPointsGenerated = 0;
     let totalDataPointsSent = 0;
+    let latestDataReceivedAt = new Date(Date.now());
+    let latestDataReceivedAt_formatted: string;
 
 
     // Function to generate dummy sensor data as a binary buffer
@@ -71,7 +73,10 @@ wss.on('connection', (ws: WebSocket) => {
         // ws.send(dataBufferBatch); // Send the batch as binary data
         try {
             ws.send(dataBufferBatch, (err) => {
-                if (err) { console.error('Send error: ', err) } else { totalDataPointsSent += 10 }
+                if (err) { console.error('Send error: ', err) } else {
+                    totalDataPointsSent += 10;
+                    latestDataReceivedAt = new Date(Date.now());
+                }
             });
         } catch (e) {
             console.error('Caught error during send: ', e);
@@ -102,6 +107,8 @@ wss.on('connection', (ws: WebSocket) => {
         console.log('Client disconnected');
         console.log('totalDataPointsGenerated : ', totalDataPointsGenerated);
         console.log('Total data points sent successfully: ' ,totalDataPointsSent);
+        latestDataReceivedAt_formatted = latestDataReceivedAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        console.log('Latest Data sent at : ', latestDataReceivedAt_formatted);
         clearInterval(intervalId);
     });
 });
