@@ -34,8 +34,7 @@ ws.onmessage = function (event) {
     } else {
         const receivedBytes = event.data.byteLength;
         totalReceivedBytes += receivedBytes;
-        //logging how much data received so far.
-        // console.log(`Received ${receivedBytes} bytes in this message. Total received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+        console.log(`Received ${receivedBytes} bytes in this message. Total received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
 
         if (numberOfChannels === 2) {
             const arrayBuffer = event.data;
@@ -94,9 +93,6 @@ ws.onmessage = function (event) {
 
             dataEmitter.emit('dataBatch', batchData);
         }
-
-
-
     }
 
     ws.onerror = function (error) {

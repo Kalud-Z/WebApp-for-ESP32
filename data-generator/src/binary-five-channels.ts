@@ -20,13 +20,16 @@ wss.on('connection', (ws: WebSocket) => {
     // Send the configuration message to the client
     ws.send(JSON.stringify({ type: 'configuration', channels: 5 }));
 
+
+    const gapBetweenTimeStamps_inMilliSeconds = 1;
+
     let totalBytesSent = 0;
     let totalBytesSentFinal = 0;
     let lastLoggedTime = Date.now();
     let secondsElapsed = 0;
     let dataPointId = 0; // Initialize the ID counter
-    const gapBetweenTimeStamps_inMilliSeconds = 1;
-
+    let totalDataPointsGenerated = 0;
+    let totalDataPointsSent = 0;
 
 
     // Function to generate dummy sensor data as a binary buffer
@@ -36,6 +39,7 @@ wss.on('connection', (ws: WebSocket) => {
         const nsGap = BigInt(gapBetweenTimeStamps_inMilliSeconds) * BigInt(1_000_000); // Gap in nanoseconds
 
         for (let i = 0; i < 10; i++) {
+            totalDataPointsGenerated++; // Increment total data points generated
             const min = 10000000; // Minimum value for the channel data
             const max = 16777215; // Maximum value for the channel data
 
@@ -63,9 +67,17 @@ wss.on('connection', (ws: WebSocket) => {
         const dataBufferBatch = generateDummySensorDataBatch();
         totalBytesSent += dataBufferBatch.length;
         totalBytesSentFinal += dataBufferBatch.length;
-        ws.send(dataBufferBatch); // Send the batch as binary data
 
-        // Logging the data rate
+        // ws.send(dataBufferBatch); // Send the batch as binary data
+        try {
+            ws.send(dataBufferBatch, (err) => {
+                if (err) { console.error('Send error: ', err) } else { totalDataPointsSent += 10 }
+            });
+        } catch (e) {
+            console.error('Caught error during send: ', e);
+        }
+
+        // Logging the data rate and bufferedAmount state.
         if (Date.now() - lastLoggedTime >= 1000) {
             secondsElapsed++; // Increment the seconds elapsed counter
             console.log(`${secondsElapsed}. Data rate: ${totalBytesSent} bytes per second`);
@@ -88,6 +100,8 @@ wss.on('connection', (ws: WebSocket) => {
 
     ws.on('close', () => {
         console.log('Client disconnected');
+        console.log('totalDataPointsGenerated : ', totalDataPointsGenerated);
+        console.log('Total data points sent successfully: ' ,totalDataPointsSent);
         clearInterval(intervalId);
     });
 });

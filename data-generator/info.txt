@@ -74,5 +74,17 @@ Im gonne be building it in Nodejs, and use Websockets.
 #################################################################################
 
 
+__useful info__
+
+
+In the WebSocket protocol, there's no built-in acknowledgment that messages have been received by the client.
+The protocol only guarantees that messages will be sent in order.
+If you need to confirm that a message has been received and processed by the client, you would have to implement this functionality manually.
+
+Typically, this is done by sending a message back from the client to the server upon receipt and processing of each message.
+This can be implemented in a variety of ways, such as echoing back a message identifier or sending a specific acknowledgment (ACK) message.
+
+
+
 
 ___________________________________________________________________________________________________________________________________________________
