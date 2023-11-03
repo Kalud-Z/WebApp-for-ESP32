@@ -77,12 +77,91 @@ Im gonne be building it in Nodejs, and use Websockets.
 __useful info__
 
 
+
+Monitoring reliability and Performance:
+
 In the WebSocket protocol, there's no built-in acknowledgment that messages have been received by the client.
 The protocol only guarantees that messages will be sent in order.
 If you need to confirm that a message has been received and processed by the client, you would have to implement this functionality manually.
 
 Typically, this is done by sending a message back from the client to the server upon receipt and processing of each message.
 This can be implemented in a variety of ways, such as echoing back a message identifier or sending a specific acknowledgment (ACK) message.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+to log the total number of data points that were successfully sent to the client, you will need to consider how WebSocket sends
+the data and how you can determine that the send was successful.
+
+The ws.send function in the WebSocket API does not wait for an acknowledgment from the client that the message has been received.
+It only ensures that the data has been successfully written to the underlying socket. This means you have to track what has been sent
+and then potentially implement an acknowledgment system where the client sends back a message saying it has received the data.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+___when the server sends 1 dataBatch containtig 10dp as binary ,
+is it 100% certain , that that dataBatch that reaches the client , also includes 10 dp , and no dataloss take places whatsoever ?___
+
+=> When using WebSockets, once a connection is established between the client and server, it provides a full-duplex communication channel over a single, long-lived connection.
+WebSockets are designed to work over TCP, which guarantees that:
+
+1. All messages will be sent in the order they were written.
+2. No messages will be lost or received twice.
+3. No part of any message will be lost or received out of order.
+
+Therefore, if you send a batch of 10 data points (dp) as a binary blob in a single WebSocket message, and the send operation completes without error,
+you can be confident that the entire batch will be received by the client as a single message without any data points being lost or corrupted during transmission.
+This is because TCP ensures that the data is reliably transmitted across the network.
+
+However, there are a few considerations:
+
+- **Network Interruptions:** If there is a network interruption or the client goes offline, the WebSocket connection may close, and any data sent during that time might
+not be received. This is not a loss of data due to the WebSocket or TCP protocols themselves, but rather due to the connection being unavailable.
+
+- **Client-Side Issues:** The client's browser or environment could experience issues that prevent it from receiving or properly processing the message. For example,
+if the browser crashes or the JavaScript environment is paused or terminated for some reason, it would not process the received data.
+
+- **Server-Side Issues:** Similarly, if the server crashes or is otherwise unable to send the message after initiating the send operation, the data would not reach the client.
+
+- **Buffer Limits:** WebSocket does have a `bufferedAmount` attribute that tells you how much data is still to be sent. If you're sending data faster than it can be
+ transmitted, this buffer can grow. If it grows beyond a certain point, you might start dropping messages or slowing down your server.
+
+--------------------------------------------------------------------------------------------------------
+
+___"..ential reconnection logic in case the connection is lost. You could implement a system where the client sends an acknowledgment back to
+the server upon successfully processing each data batch."  adding this extra step of communication to my system, does effect the performance badly ?
+my main  focus is real time visualisation of data sent from the server____
+
+
+=> Implementing an acknowledgment system where the client confirms the receipt of each data batch does add an extra step in the communication process
+and can have an impact on performance, particularly in a system where real-time data visualization is critical. The extent to which performance is affected depends on several factors:
+
+1. **Network Latency:** Each acknowledgment sent by the client introduces a round-trip delay. In a low-latency network, this might be negligible, but on
+a higher-latency network, it could become significant.
+
+2. **Message Overhead:** If the volume of data is high, the additional messages for acknowledgments can add overhead to the network traffic, potentially causing
+ congestion and delays.
+
+3. **Processing Overhead:** Both the server and client have to spend additional CPU cycles processing the acknowledgment messages, which could potentially
+affect the performance of the visualization system if it is already operating near its processing limits.
+
+4. **Complexity:** The logic for handling acknowledgments adds complexity to the code, which could introduce bugs or affect maintainability.
+
+However, these potential issues need to be balanced against the requirement for reliable data transmission. If real-time visualization is the main focus and
+ the underlying network is reliable (e.g., a local network with low latency and high bandwidth), you may choose to rely on the inherent reliability of TCP
+ (which WebSocket uses) and the assumption that messages sent will be received and processed in order and without loss.
+
+On the other hand, if you're operating over an unreliable network or if it's critical to ensure that all data is visualized correctly (for example,
+in a medical or safety-critical system), then implementing an acknowledgment system may be necessary despite the performance implications.
+
+Here are some strategies to mitigate the performance impact:
+
+- **Batch Acknowledgments:** Instead of sending an acknowledgment for every data batch, you could acknowledge the receipt of multiple batches at once.
+- **Non-blocking Acknowledgments:** Ensure that the acknowledgment processing does not block the main data processing or visualization tasks. This can often be handled by using asynchronous communication.
+- **Selective Acknowledgments:** Implement logic on the client to only send acknowledgments if there is some indication of an issue, such as if it detects a gap in the data sequence.
+
+
+
+
 
 
 

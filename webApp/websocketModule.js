@@ -4,6 +4,7 @@ class WebSocketEmitter extends EventEmitter {}
 export const dataEmitter = new WebSocketEmitter();
 
 let totalReceivedBytes = 0;
+let totalDataPointsReceived = 0;
 
 const ws = new WebSocket('ws://localhost:8999');
 
@@ -65,6 +66,7 @@ ws.onmessage = function (event) {
             const arrayBuffer = event.data;
             const datapointSize = 32; // Corrected datapoint size according to server code
             const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
+            totalDataPointsReceived += numberOfDataPoints;
 
             let batchData = {
                 timestamps: [],
@@ -101,6 +103,7 @@ ws.onmessage = function (event) {
 
     ws.onclose = function (event) {
         console.log('WebSocket connection closed');
+        console.log(`Total data points received: ${totalDataPointsReceived}`);
     };
 }
 
