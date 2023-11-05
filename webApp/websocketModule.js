@@ -8,6 +8,7 @@ let totalDataPointsReceived = 0;
 let latestDataReceivedAt; let latestDataReceivedAt_formatted;
 
 const ws = new WebSocket('ws://localhost:8999');
+// const ws = new WebSocket('ws://192.168.3.7:8999');
 
 export let numberOfChannels;
 
