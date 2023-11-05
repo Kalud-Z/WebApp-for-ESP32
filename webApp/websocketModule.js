@@ -8,7 +8,7 @@ let totalDataPointsReceived = 0;
 let latestDataReceivedAt; let latestDataReceivedAt_formatted;
 
 const ws = new WebSocket('ws://localhost:8999');
-// const ws = new WebSocket('ws://192.168.3.7:8999');
+// const ws = new WebSocket('ws://185.237.15.90:8999');
 
 export let numberOfChannels;
 
@@ -37,7 +37,7 @@ ws.onmessage = function (event) {
     } else {
         const receivedBytes = event.data.byteLength;
         totalReceivedBytes += receivedBytes;
-        console.log(`Received ${receivedBytes} bytes in this message. Total received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+        // console.log(`Received ${receivedBytes} bytes in this message. Total received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
 
         if (numberOfChannels === 2) {
             const arrayBuffer = event.data;
