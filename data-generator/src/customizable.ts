@@ -10,7 +10,7 @@ const server = http.createServer(app);
 // Initialize the WebSocket server instance
 const wss = new WebSocketServer({ server });
 
-const numberOfChannels: number = 7;
+const numberOfChannels: number = 2;
 
 
 app.get('/', (req, res) => {

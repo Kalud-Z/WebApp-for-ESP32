@@ -83,6 +83,18 @@ ws.onmessage = function (event) {
 };
 
 
+ws.onerror = function (error) {
+    console.error('WebSocket Error: ', error);
+};
+
+ws.onclose = function (event) {
+    console.log('WebSocket connection closed');
+    console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+    console.log(`Total data points received: ${totalDataPointsReceived}`);
+    console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
+};
+
+
 
 
 function bytesToKilobytes(bytes) {
