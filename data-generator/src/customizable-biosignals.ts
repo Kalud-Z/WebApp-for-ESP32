@@ -10,7 +10,7 @@ const server = http.createServer(app);
 // Initialize the WebSocket server instance
 const wss = new WebSocketServer({ server });
 
-const numberOfChannels: number = 2;
+const numberOfChannels: number = 3;
 
 
 app.get('/', (req, res) => {
@@ -36,41 +36,59 @@ wss.on('connection', (ws: WebSocket) => {
     let latestDataReceivedAt_formatted: string;
 
 
+
+    // Function to generate sine wave data
+    const generateSineData = (angle: number, min: number, max: number) => {
+        const sineValue = Math.sin(angle);
+        return Math.round(((sineValue + 1) / 2) * (max - min) + min);
+    };
+
+    // Function to generate sawtooth wave data
+    const generateSawtoothData = (dataPointIndex: number, totalPoints: number, min: number, max: number) => {
+        const value = (dataPointIndex % totalPoints) / totalPoints;
+        return Math.round(value * (max - min) + min);
+    };
+
+    const channelWaveTypes = Array.from({ length: numberOfChannels }, () => Math.random() < 0.5);
+
+
     // Function to generate dummy sensor data as a binary buffer
     const generateDummySensorDataBatch = () => {
         const dataPoints = [];
         let ns = process.hrtime.bigint(); // Initial timestamp in nanoseconds
         const nsGap = BigInt(gapBetweenTimeStamps_inMilliSeconds) * BigInt(1_000_000); // Gap in nanoseconds
+        const totalPointsInPeriod = 1000; // Points in one period
 
-        // Define the minimum and maximum values for the channel data
         const min = 10000000;
         const max = 16777215;
 
         for (let i = 0; i < 10; i++) {
             totalDataPointsGenerated++; // Increment total data points generated
 
-            // Calculate the buffer size dynamically based on the number of channels
             const bufferSize = 8 + (numberOfChannels * 4) + 4;
             const buffer = Buffer.alloc(bufferSize);
             buffer.writeBigUInt64BE(ns, 0);
 
-            // Calculate the angle for the sine wave based on the current data point and the total points in a period
-            // The total number of data points in a period is 1000 (since you're generating 1000 data points per second)
-            const angle = (2 * Math.PI * (totalDataPointsGenerated % 1000)) / 1000; // This will be the phase angle for the sine function
-
-            // Write the sinusoidal data for each channel based on the numberOfChannels
             for (let j = 0; j < numberOfChannels; j++) {
-                // Here we are using sine function to generate the value
-                const sineValue = Math.sin(angle);
-                // Normalize sineValue from range [-1, 1] to [min, max] for the channel data
-                const normalizedValue = Math.round(((sineValue + 1) / 2) * (max - min) + min);
-                buffer.writeUInt32BE(normalizedValue, 8 + (j * 4));
+                // Randomly determine if this channel is sine or sawtooth
+                // const isSine = Math.random() < 0.5; // 50% chance for sine wave
+                const isSine = channelWaveTypes[j];
+
+                // Calculate the angle for the wave based on the current data point and the total points in a period
+                const angle = (2 * Math.PI * (totalDataPointsGenerated % totalPointsInPeriod)) / totalPointsInPeriod;
+
+                // Use the appropriate function to generate the data based on the type
+                const value = isSine
+                    ? generateSineData(angle, min, max)
+                    : generateSawtoothData(totalDataPointsGenerated, totalPointsInPeriod, min, max);
+
+                buffer.writeUInt32BE(value, 8 + (j * 4));
             }
 
-            buffer.writeUInt32BE(dataPointId++, 8 + (numberOfChannels * 4)); // Write the ID at the end
+            buffer.writeUInt32BE(dataPointId++, 8 + (numberOfChannels * 4));
             dataPoints.push(buffer);
 
-            ns = ns + nsGap; // Increment timestamp by the gap for the next data point
+            ns = ns + nsGap;
         }
 
         return Buffer.concat(dataPoints);

@@ -29,7 +29,7 @@ html, body {
 }
 
 body {
-    border: 2px solid blue;
+    /*border: 2px solid blue;*/
     padding-top: 4rem;
     min-height: 100%;
     display: grid;
@@ -43,7 +43,7 @@ body {
 .chart-container {
     width: 100%; /* Each chart container will take the full width of the grid cell */
     height: 50%;
-    border: 1px solid yellow; /* This is just for visualisation, can be removed */
+    /*border: 1px solid yellow; !* This is just for visualisation, can be removed *!*/
     display: flex;
     justify-content: center;
     align-items: center;
