@@ -25,92 +25,52 @@ ws.onmessage = function (event) {
     let frameDelay = now - lastFrameTime;
     lastFrameTime = now;
 
-    // Log or display the delay somewhere
-    // console.log(`Time since last frame: ${frameDelay}ms`);
-
+    // Handle configuration message
     if (typeof event.data === 'string') {
         const message = JSON.parse(event.data);
         if (message.type === 'configuration') {
             numberOfChannels = message.channels;
             dataEmitter.emit('configuration', numberOfChannels);
         }
-    } else {
+    } else { // Handle binary data
         const receivedBytes = event.data.byteLength;
         totalReceivedBytes += receivedBytes;
-        // console.log(`Received ${receivedBytes} bytes in this message. Total received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+        const arrayBuffer = event.data;
 
-        if (numberOfChannels === 2) {
-            const arrayBuffer = event.data;
-            const datapointSize = 20; // Each datapoint is 20 bytes
-            const numberOfDataPoints = arrayBuffer.byteLength/datapointSize;
+        // Calculate the datapoint size based on the number of channels
+        const datapointSize = 8 + (numberOfChannels * 4) + 4; // 8 bytes for timestamp, 4 for each channel, 4 for ID
+        const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
+        totalDataPointsReceived += numberOfDataPoints;
+        latestDataReceivedAt = new Date(Date.now());
+        latestDataReceivedAt_formatted = latestDataReceivedAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-            let batchData = {
-                timestamps: [],
-                channel1Values: [],
-                channel2Values: [],
-                dataPointIDs: []
-            };
+        let batchData = {
+            timestamps: [],
+            channelValues: Array.from({ length: numberOfChannels }, () => []),
+            dataPointIDs: []
+        };
 
-            for (let i = 0; i < numberOfDataPoints; i++) {
-                const offset = i * datapointSize;
-                const view = new DataView(arrayBuffer, offset, datapointSize);
+        for (let i = 0; i < numberOfDataPoints; i++) {
+            const offset = i * datapointSize;
+            const view = new DataView(arrayBuffer, offset, datapointSize);
 
-                batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
-                batchData.channel1Values.push(view.getUint32(8));
-                batchData.channel2Values.push(view.getUint32(12));
-                batchData.dataPointIDs.push(view.getUint32(16));
+            batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
+
+            // Read each channel value
+            for (let channelIndex = 0; channelIndex < numberOfChannels; channelIndex++) {
+                batchData.channelValues[channelIndex].push(view.getUint32(8 + (channelIndex * 4)));
             }
 
-            dataEmitter.emit('dataBatch', batchData);
+            // Read the dataPointID at the end of the data point
+            batchData.dataPointIDs.push(view.getUint32(8 + (numberOfChannels * 4)));
         }
 
-        if (numberOfChannels === 5) {
-            const arrayBuffer = event.data;
-            const datapointSize = 32; // Corrected datapoint size according to server code
-            const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
-            totalDataPointsReceived += numberOfDataPoints;
-            latestDataReceivedAt = new Date(Date.now());
-            latestDataReceivedAt_formatted = latestDataReceivedAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            let batchData = {
-                timestamps: [],
-                channel1Values: [],
-                channel2Values: [],
-                channel3Values: [],
-                channel4Values: [],
-                channel5Values: [],
-                dataPointIDs: []
-            };
-
-            for (let i = 0; i < numberOfDataPoints; i++) {
-                const offset = i * datapointSize;
-                const view = new DataView(arrayBuffer, offset, datapointSize);
-
-                batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
-                // Correctly reading each channel value which takes up 4 bytes
-                batchData.channel1Values.push(view.getUint32(8));
-                batchData.channel2Values.push(view.getUint32(12));
-                batchData.channel3Values.push(view.getUint32(16));
-                batchData.channel4Values.push(view.getUint32(20));
-                batchData.channel5Values.push(view.getUint32(24));
-                // Correctly reading the dataPointID which takes up the last 4 bytes of the 32-byte data point
-                batchData.dataPointIDs.push(view.getUint32(28));
-            }
-
-            dataEmitter.emit('dataBatch', batchData);
-        }
+        console.log('batchData : ', batchData);
+        console.log('################################')
+        dataEmitter.emit('dataBatch', batchData);
     }
+};
 
-    ws.onerror = function (error) {
-        console.error('WebSocket Error: ', error);
-    };
-
-    ws.onclose = function (event) {
-        console.log('WebSocket connection closed');
-        console.log(`Total data points received: ${totalDataPointsReceived}`);
-        console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
-    };
-}
 
 
 
