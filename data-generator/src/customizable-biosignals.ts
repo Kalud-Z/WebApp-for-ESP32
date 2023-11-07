@@ -10,7 +10,8 @@ const server = http.createServer(app);
 // Initialize the WebSocket server instance
 const wss = new WebSocketServer({ server });
 
-const numberOfChannels: number = 3;
+const numberOfChannels: number = 15;
+const numberOfDataPointsPerBatch: number = 20;
 
 
 app.get('/', (req, res) => {
@@ -19,11 +20,13 @@ app.get('/', (req, res) => {
 
 wss.on('connection', (ws: WebSocket) => {
     console.log('WebSocket connection established');
-
     // Send the configuration message to the client
     ws.send(JSON.stringify({ type: 'configuration', channels: numberOfChannels }));
 
-    const gapBetweenTimeStamps_inMilliSeconds = 1;
+    const intervalBetweenDataPoints_inMilliSeconds = 1;
+
+    // console.log('the Data is sent at rate of 'intervalBetweenDataPoints_inMilliSeconds * numberOfDataPointsPerBatch)
+    console.log(`Settings : data sent as ${numberOfDataPointsPerBatch} datapoints per batch every ${intervalBetweenDataPoints_inMilliSeconds * numberOfDataPointsPerBatch}ms | ${numberOfChannels} Channels`)
 
     let totalBytesSent = 0;
     let totalBytesSentFinal = 0;
@@ -51,18 +54,17 @@ wss.on('connection', (ws: WebSocket) => {
 
     const channelWaveTypes = Array.from({ length: numberOfChannels }, () => Math.random() < 0.5);
 
-
     // Function to generate dummy sensor data as a binary buffer
     const generateDummySensorDataBatch = () => {
         const dataPoints = [];
         let ns = process.hrtime.bigint(); // Initial timestamp in nanoseconds
-        const nsGap = BigInt(gapBetweenTimeStamps_inMilliSeconds) * BigInt(1_000_000); // Gap in nanoseconds
+        const nsGap = BigInt(intervalBetweenDataPoints_inMilliSeconds) * BigInt(1_000_000); // Gap in nanoseconds
         const totalPointsInPeriod = 1000; // Points in one period
 
         const min = 10000000;
         const max = 16777215;
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < numberOfDataPointsPerBatch; i++) {
             totalDataPointsGenerated++; // Increment total data points generated
 
             const bufferSize = 8 + (numberOfChannels * 4) + 4;
@@ -70,8 +72,6 @@ wss.on('connection', (ws: WebSocket) => {
             buffer.writeBigUInt64BE(ns, 0);
 
             for (let j = 0; j < numberOfChannels; j++) {
-                // Randomly determine if this channel is sine or sawtooth
-                // const isSine = Math.random() < 0.5; // 50% chance for sine wave
                 const isSine = channelWaveTypes[j];
 
                 // Calculate the angle for the wave based on the current data point and the total points in a period
@@ -96,8 +96,6 @@ wss.on('connection', (ws: WebSocket) => {
 
 
 
-
-
     // Send binary sensor data at a specified rate
     const intervalId = setInterval(() => {
         const dataBufferBatch = generateDummySensorDataBatch();
@@ -108,7 +106,7 @@ wss.on('connection', (ws: WebSocket) => {
         try {
             ws.send(dataBufferBatch, (err) => {
                 if (err) { console.error('Send error: ', err) } else {
-                    totalDataPointsSent += 10;
+                    totalDataPointsSent += numberOfDataPointsPerBatch;
                     latestDataReceivedAt = new Date(Date.now());
                 }
             });
@@ -124,7 +122,7 @@ wss.on('connection', (ws: WebSocket) => {
             lastLoggedTime = Date.now();
             console.log(`Current bufferedAmount: ${ws.bufferedAmount}`);
         }
-    }, gapBetweenTimeStamps_inMilliSeconds * 10); // adjust the interval as needed
+    }, intervalBetweenDataPoints_inMilliSeconds * numberOfDataPointsPerBatch); // adjust the interval as needed
 
     // Stop sending after 30 seconds
     setTimeout(() => {

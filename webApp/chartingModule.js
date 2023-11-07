@@ -1,13 +1,13 @@
 import { numberOfChannels } from './websocketModule.js';
 
-const intervalRate_TwoChannels = 10; // in ms. The rate at which the server sends the data.
-const howManyDataPointPerBatch = 10;  // The server sends 10 datapoints per batch.
+const intervalRate = 20; // in ms. The rate at which the server sends the data.
+const howManyDataPointPerBatch = 20;  // The server sends 10 datapoints per batch.
 const timeFrameOfVisibleData = 5; // in seconds.
 
 export default function setupCharting(dataEmitter) {
     let channelsData = [];
     let uplotInstances = [];
-    const maxDataPoints = ((1000 / intervalRate_TwoChannels) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
+    const maxDataPoints = ((1000 / intervalRate) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
 
     for (let channelIndex = 1; channelIndex <= numberOfChannels; channelIndex++) {
         channelsData.push([
