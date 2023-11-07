@@ -10,7 +10,10 @@ const server = http.createServer(app);
 // Initialize the WebSocket server instance
 const wss = new WebSocketServer({ server });
 
-const numberOfChannels: number = 15;
+// const numberOfChannels: number = 15;
+const numberOfChannels: number = parseInt(process.env.CH ?? '10');
+
+
 const numberOfDataPointsPerBatch: number = 20;
 
 
