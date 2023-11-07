@@ -48,11 +48,7 @@ ws.onmessage = function (event) {
         const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
         totalDataPointsReceived += numberOfDataPoints;
         latestDataReceivedAt = new Date();
-        latestDataReceivedAt_formatted = latestDataReceivedAt.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
+        latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt)
 
         // Initialize the batchData object
         let batchData = {
@@ -104,22 +100,16 @@ function bytesToKilobytes(bytes) {
 }
 
 
+function formatTime(date) {
+    if (!(date instanceof Date)) {
+        throw new Error('Input must be a Date object.');
+    }
 
+    let hours = date.getHours().toString().padStart(2, '0');
+    let minutes = date.getMinutes().toString().padStart(2, '0');
+    let seconds = date.getSeconds().toString().padStart(2, '0');
+    let milliseconds = date.getMilliseconds().toString().padStart(3, '0');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return `${hours}:${minutes}:${seconds}:${milliseconds}`;
+}
 

@@ -142,7 +142,7 @@ wss.on('connection', (ws: WebSocket) => {
         console.log('Client disconnected');
         console.log('totalDataPointsGenerated : ', totalDataPointsGenerated);
         console.log('Total data points sent successfully: ' ,totalDataPointsSent);
-        latestDataReceivedAt_formatted = latestDataReceivedAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt);
         console.log('Latest Data sent at : ', latestDataReceivedAt_formatted);
         clearInterval(intervalId);
     });
@@ -152,7 +152,14 @@ function bytesToKilobytes(bytes: number) {
     return bytes / 1024;
 }
 
+function formatTime(date: Date) {
+    let hours = date.getHours().toString().padStart(2, '0');
+    let minutes = date.getMinutes().toString().padStart(2, '0');
+    let seconds = date.getSeconds().toString().padStart(2, '0');
+    let milliseconds = date.getMilliseconds().toString().padStart(3, '0');
 
+    return `${hours}:${minutes}:${seconds}:${milliseconds}`;
+}
 //#######################################################################################################################
 
 // Start our server on all IPv4 addresses available to the operating system.
