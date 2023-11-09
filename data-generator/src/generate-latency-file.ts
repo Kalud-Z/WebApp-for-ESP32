@@ -31,13 +31,26 @@ const readJsonFile = (filePath: string): Batch[] => {
 // The directory containing your files
 const directoryPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
 
-// Paths to the input files
-const receivedBatchesFile = path.join(directoryPath, 'allReceivedBatches_5_channels.json');
-const sentBatchesFile = path.join(directoryPath, 'allSentBatches_5_channels.json');
+// Function to find files by pattern
+const findFilesByPattern = (dir: string, pattern: RegExp): string[] => {
+    const files = fs.readdirSync(dir);
+    return files.filter(file => pattern.test(file)).map(file => path.join(dir, file));
+};
+
+// Find the 'Received' and 'Sent' files
+const receivedFiles = findFilesByPattern(directoryPath, /Received/);
+const sentFiles = findFilesByPattern(directoryPath, /Sent/);
+
+if (receivedFiles.length !== 1 || sentFiles.length !== 1) {
+    throw new Error('There should be exactly one "Received" file and one "Sent" file.');
+}
 
 // Read the batch data from files
-const receivedBatches = readJsonFile(receivedBatchesFile);
-const sentBatches = readJsonFile(sentBatchesFile);
+const receivedBatches = readJsonFile(receivedFiles[0]);
+const sentBatches = readJsonFile(sentFiles[0]);
+
+console.log(`Total number of received batches: ${receivedBatches.length}`);
+console.log(`Total number of sent batches: ${sentBatches.length}`);
 
 // Assuming both files have the same number of batch entries and are in the same order
 const latencyResults: Latency[] = receivedBatches.map((receivedBatch) => {
