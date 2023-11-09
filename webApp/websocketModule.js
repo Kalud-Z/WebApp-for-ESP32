@@ -39,30 +39,37 @@ ws.onmessage = function (event) {
         totalReceivedBytes += receivedBytes;
         const arrayBuffer = event.data;
 
-        // Define the size of one data point based on the number of channels
+        // Define the sizes
+        const batchIdSize = 4; // Size of the batch ID in bytes
         const timestampSize = 8; // Size of the timestamp in bytes
         const channelValueSize = 4; // Size of each channel value in bytes
         const idSize = 4; // Size of the data point ID in bytes
         const datapointSize = timestampSize + (numberOfChannels * channelValueSize) + idSize;
 
-        const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
+        const view = new DataView(arrayBuffer);
+        const batchID = view.getUint32(0); // Read the batch ID from the start of the buffer
+
+        // Calculate the number of data points, subtracting the batchIdSize from the buffer length first
+        const numberOfDataPoints = (arrayBuffer.byteLength - batchIdSize) / datapointSize;
         totalDataPointsReceived += numberOfDataPoints;
         latestDataReceivedAt = new Date();
         latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt)
 
         // Initialize the batchData object
         let batchData = {
+            batchID: batchID,
             timestamps: [],
             dataPointIDs: [],
+            // Add an array for each channel
         };
 
-        // Add an array for each channel
         for (let channel = 1; channel <= numberOfChannels; channel++) {
             batchData[`channel${channel}Values`] = [];
         }
 
+        // Adjust the loop to start reading after the batch ID
         for (let i = 0; i < numberOfDataPoints; i++) {
-            const offset = i * datapointSize;
+            const offset = batchIdSize + (i * datapointSize);
             const view = new DataView(arrayBuffer, offset, datapointSize);
 
             batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
@@ -76,8 +83,59 @@ ws.onmessage = function (event) {
             batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize)));
         }
 
+        console.log('this is batchData : ', batchData);
         dataEmitter.emit('dataBatch', batchData);
     }
+
+
+
+    // { // Handle binary data
+    //     const receivedBytes = event.data.byteLength;
+    //     totalReceivedBytes += receivedBytes;
+    //     const arrayBuffer = event.data;
+    //
+    //     // Define the size of one data point based on the number of channels
+    //     const timestampSize = 8; // Size of the timestamp in bytes
+    //     const channelValueSize = 4; // Size of each channel value in bytes
+    //     const idSize = 4; // Size of the data point ID in bytes
+    //     const datapointSize = timestampSize + (numberOfChannels * channelValueSize) + idSize;
+    //
+    //     const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
+    //     totalDataPointsReceived += numberOfDataPoints;
+    //     latestDataReceivedAt = new Date();
+    //     latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt)
+    //
+    //     // Initialize the batchData object
+    //     let batchData = {
+    //         timestamps: [],
+    //         dataPointIDs: [],
+    //     };
+    //
+    //     // Add an array for each channel
+    //     for (let channel = 1; channel <= numberOfChannels; channel++) {
+    //         batchData[`channel${channel}Values`] = [];
+    //     }
+    //
+    //     for (let i = 0; i < numberOfDataPoints; i++) {
+    //         const offset = i * datapointSize;
+    //         const view = new DataView(arrayBuffer, offset, datapointSize);
+    //
+    //         batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
+    //
+    //         // Populate each channel's values
+    //         for (let channel = 0; channel < numberOfChannels; channel++) {
+    //             batchData[`channel${channel + 1}Values`].push(view.getUint32(timestampSize + (channel * channelValueSize)));
+    //         }
+    //
+    //         // Add the data point ID
+    //         batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize)));
+    //     }
+    //
+    //     dataEmitter.emit('dataBatch', batchData);
+    // }
+
+
+
 };
 
 

@@ -65,6 +65,48 @@ wss.on('connection', (ws: WebSocket) => {
     const channelWaveTypes = Array.from({ length: numberOfChannels }, () => Math.random() < 0.5);
 
     // Function to generate dummy sensor data as a binary buffer
+    // const generateDummySensorDataBatch = () => {
+    //     const dataPoints = [];
+    //     let ns = process.hrtime.bigint(); // Initial timestamp in nanoseconds
+    //     const nsGap = BigInt(intervalBetweenDataPoints_inMilliSeconds) * BigInt(1_000_000); // Gap in nanoseconds
+    //     const totalPointsInPeriod = 1000; // Points in one period
+    //
+    //     const min = 10000000;
+    //     const max = 16777215;
+    //
+    //     for (let i = 0; i < numberOfDataPointsPerBatch; i++) {
+    //         totalDataPointsGenerated++; // Increment total data points generated
+    //
+    //         const bufferSize = 8 + (numberOfChannels * 4) + 4;
+    //         const buffer = Buffer.alloc(bufferSize);
+    //         buffer.writeBigUInt64BE(ns, 0);
+    //
+    //         for (let j = 0; j < numberOfChannels; j++) {
+    //             const isSine = channelWaveTypes[j];
+    //
+    //             // Calculate the angle for the wave based on the current data point and the total points in a period
+    //             const angle = (2 * Math.PI * (totalDataPointsGenerated % totalPointsInPeriod)) / totalPointsInPeriod;
+    //
+    //             // Use the appropriate function to generate the data based on the type
+    //             const value = isSine
+    //                 ? generateSineData(angle, min, max)
+    //                 : generateSawtoothData(totalDataPointsGenerated, totalPointsInPeriod, min, max);
+    //
+    //             buffer.writeUInt32BE(value, 8 + (j * 4));
+    //         }
+    //
+    //         buffer.writeUInt32BE(dataPointId++, 8 + (numberOfChannels * 4));
+    //         dataPoints.push(buffer);
+    //
+    //         ns = ns + nsGap;
+    //     }
+    //
+    //     return Buffer.concat(dataPoints);
+    // };
+
+
+    let batchID = 0;
+
     const generateDummySensorDataBatch = () => {
         const dataPoints = [];
         let ns = process.hrtime.bigint(); // Initial timestamp in nanoseconds
@@ -83,11 +125,7 @@ wss.on('connection', (ws: WebSocket) => {
 
             for (let j = 0; j < numberOfChannels; j++) {
                 const isSine = channelWaveTypes[j];
-
-                // Calculate the angle for the wave based on the current data point and the total points in a period
                 const angle = (2 * Math.PI * (totalDataPointsGenerated % totalPointsInPeriod)) / totalPointsInPeriod;
-
-                // Use the appropriate function to generate the data based on the type
                 const value = isSine
                     ? generateSineData(angle, min, max)
                     : generateSawtoothData(totalDataPointsGenerated, totalPointsInPeriod, min, max);
@@ -101,11 +139,13 @@ wss.on('connection', (ws: WebSocket) => {
             ns = ns + nsGap;
         }
 
-        return Buffer.concat(dataPoints);
+        const batchBuffer = Buffer.alloc(4); // Allocate 4 bytes for the batch ID
+        batchBuffer.writeUInt32BE(batchID, 0); // Write the batch ID at the start
+
+        const dataPointsBuffer = Buffer.concat(dataPoints); // Concatenate all data point buffers
+        return Buffer.concat([batchBuffer, dataPointsBuffer]); // Prepend the batch ID to the data points buffer
     };
 
-
-    let batchID = 0;
 
     // Send binary sensor data at a specified rate
     const intervalId = setInterval(() => {
