@@ -1,93 +1,61 @@
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface Batch {
     batchID: number;
     timestamp: string;
 }
 
-interface LatencyResult {
+interface Latency {
     batchID: number;
-    latency: string; // in milliseconds as a string
+    latency: number;
 }
 
-// Specify the directory path
-const dirPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
-
-// Read the directory and filter out the JSON files
-const jsonFiles = fs.readdirSync(dirPath).filter(file => file.endsWith('.json'));
-
-// Find the matching pair of files
-const receivedPattern = /allReceivedBatches_(\d+)_channels\.json/;
-const sentPattern = /allSentBatches_(\d+)_channels\.json/;
-
-// Initialize empty arrays for the batch data
-let receivedBatches: Batch[] = [];
-let sentBatches: Batch[] = [];
-
-// Function to read JSON data from a file
-const readJsonData = (filePath: string): Batch[] => {
-    try {
-        const rawData = fs.readFileSync(filePath, 'utf-8');
-        return JSON.parse(rawData) as Batch[];
-    } catch (error) {
-        console.error(`Error reading file ${filePath}: `, error);
-        process.exit(1);
-    }
+// Convert a timestamp to milliseconds
+const timestampToMs = (timestamp: string): number => {
+    const [hours, minutes, seconds, milliseconds] = timestamp.split(':').map(Number);
+    return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds;
 };
 
-// Iterate over the files and read their content
-jsonFiles.forEach(file => {
-    const filePath = path.join(dirPath, file);
-    if (receivedPattern.test(file)) {
-        receivedBatches = readJsonData(filePath);
-    } else if (sentPattern.test(file)) {
-        sentBatches = readJsonData(filePath);
+// Calculate latency between two timestamps
+const calculateLatency = (sent: string, received: string): number => {
+    return timestampToMs(received) - timestampToMs(sent);
+};
+
+// Read JSON file and parse it
+const readJsonFile = (filePath: string): Batch[] => {
+    const rawData = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(rawData);
+};
+
+// The directory containing your files
+const directoryPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
+
+// Paths to the input files
+const receivedBatchesFile = path.join(directoryPath, 'allReceivedBatches_5_channels.json');
+const sentBatchesFile = path.join(directoryPath, 'allSentBatches_5_channels.json');
+
+// Read the batch data from files
+const receivedBatches = readJsonFile(receivedBatchesFile);
+const sentBatches = readJsonFile(sentBatchesFile);
+
+// Assuming both files have the same number of batch entries and are in the same order
+const latencyResults: Latency[] = receivedBatches.map((receivedBatch) => {
+    const sentBatch = sentBatches.find((batch) => batch.batchID === receivedBatch.batchID);
+    if (!sentBatch) {
+        throw new Error(`Sent batch not found for batchID ${receivedBatch.batchID}`);
     }
+
+    const latency = calculateLatency(sentBatch.timestamp, receivedBatch.timestamp);
+
+    return {
+        batchID: receivedBatch.batchID,
+        latency: latency
+    };
 });
 
-// Check if both arrays have been populated
-if (receivedBatches.length === 0 || sentBatches.length === 0) {
-    console.error('Both sent and received batch files must be present.');
-    process.exit(1);
-}
-
-// Calculate latency
-const calculateLatency = (sent: Batch[], received: Batch[]): LatencyResult[] => {
-    const latencyResults: LatencyResult[] = [];
-    const receivedBatchIDs = new Set(received.map(batch => batch.batchID));
-    const sentBatchIDs = new Set(sent.map(batch => batch.batchID));
-
-    // Iterate over sent batches to find corresponding received batch and calculate latency
-    sent.forEach(batch => {
-        if (!receivedBatchIDs.has(batch.batchID)) {
-            console.log(`BatchID ${batch.batchID} found in sent batches but not in received batches.`);
-        } else {
-            const receivedBatch = received.find(r => r.batchID === batch.batchID);
-            // Ensure that receivedBatch is not undefined before proceeding
-            if (receivedBatch) {
-                const latencyMs = new Date(receivedBatch.timestamp).getTime() - new Date(batch.timestamp).getTime();
-                latencyResults.push({
-                    batchID: batch.batchID,
-                    latency: latencyMs.toString() // The latency is kept as a string according to the user's initial request
-                });
-            }
-        }
-    });
-
-    // Iterate over received batches to log those not present in sent batches
-    received.forEach(batch => {
-        if (!sentBatchIDs.has(batch.batchID)) {
-            console.log(`BatchID ${batch.batchID} found in received batches but not in sent batches.`);
-        }
-    });
-
-    return latencyResults;
-};
-
-
-// Calculate the latency and write the results to a file
-const latencyResults = calculateLatency(sentBatches, receivedBatches);
-const outputPath = path.join(dirPath, 'latency.json');
+// Write the results to a file
+const outputPath = path.join(directoryPath, 'latency.json');
 fs.writeFileSync(outputPath, JSON.stringify(latencyResults, null, 2), 'utf-8');
-console.log(`Latency results written to ${outputPath}`);
+
+console.log('Latency calculation completed and saved to latency.json');
