@@ -15,7 +15,7 @@ const wss = new WebSocketServer({ server });
 
 interface sentBatch {
     batchID: number;
-    timestamp: Date;
+    timestamp: string;
 }
 
 
@@ -159,7 +159,8 @@ wss.on('connection', (ws: WebSocket) => {
                 if (err) { console.error('Send error: ', err) } else {
                     totalDataPointsSent += numberOfDataPointsPerBatch;
                     latestDataSentAt = new Date(Date.now());
-                    allSentBatches.push({ batchID: batchID++, timestamp: new Date(latestDataSentAt) });
+                    // allSentBatches.push({ batchID: batchID++, timestamp: new Date(latestDataSentAt) });
+                    allSentBatches.push({ batchID: batchID++, timestamp: formatTime(latestDataSentAt) });
                 }
             });
         } catch (e) {
@@ -199,7 +200,8 @@ wss.on('connection', (ws: WebSocket) => {
         // Define the path and filename
         // const dirPath = '/home/kalud/saved-data-from-server';
         const dirPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
-        const fileName = 'allSentBatches.json';
+        // const fileName = 'allSentBatches.json';
+        const fileName = `allSentBatches_${numberOfChannels}_channels.json`;
         const filePath = path.join(dirPath, fileName);
 
         // Call the function to save allSentBatches to a file

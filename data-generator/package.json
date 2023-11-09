@@ -9,6 +9,7 @@
     "start:b5": "npx ts-node src/binary-five-channels.ts",
     "start:c": "npx ts-node src/customizable.ts",
     "start:cs": "npx ts-node src/customizable-biosignals.ts",
+    "start:l": "npx ts-node src/generate-latency-file.ts",
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -6,6 +6,7 @@ export const dataEmitter = new WebSocketEmitter();
 let totalReceivedBytes = 0;
 let totalDataPointsReceived = 0;
 let latestDataReceivedAt; let latestDataReceivedAt_formatted;
+let allBatchesReceived = [];
 
 const ws = new WebSocket('ws://localhost:8999');
 // const ws = new WebSocket('ws://185.237.15.90:8999');
@@ -49,6 +50,14 @@ ws.onmessage = function (event) {
         const view = new DataView(arrayBuffer);
         const batchID = view.getUint32(0); // Read the batch ID from the start of the buffer
 
+        // const batchTimestamp = new Date().toISOString(); // Get the current timestamp
+        // allBatchesReceived.push({ batchID: batchID, timestamp: batchTimestamp });
+
+        const batchTimestamp = formatTime(new Date()); // Format the current timestamp
+        allBatchesReceived.push({ batchID: batchID, timestamp: batchTimestamp });
+
+
+
         // Calculate the number of data points, subtracting the batchIdSize from the buffer length first
         const numberOfDataPoints = (arrayBuffer.byteLength - batchIdSize) / datapointSize;
         totalDataPointsReceived += numberOfDataPoints;
@@ -83,58 +92,8 @@ ws.onmessage = function (event) {
             batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize)));
         }
 
-        console.log('this is batchData : ', batchData);
         dataEmitter.emit('dataBatch', batchData);
     }
-
-
-
-    // { // Handle binary data
-    //     const receivedBytes = event.data.byteLength;
-    //     totalReceivedBytes += receivedBytes;
-    //     const arrayBuffer = event.data;
-    //
-    //     // Define the size of one data point based on the number of channels
-    //     const timestampSize = 8; // Size of the timestamp in bytes
-    //     const channelValueSize = 4; // Size of each channel value in bytes
-    //     const idSize = 4; // Size of the data point ID in bytes
-    //     const datapointSize = timestampSize + (numberOfChannels * channelValueSize) + idSize;
-    //
-    //     const numberOfDataPoints = arrayBuffer.byteLength / datapointSize;
-    //     totalDataPointsReceived += numberOfDataPoints;
-    //     latestDataReceivedAt = new Date();
-    //     latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt)
-    //
-    //     // Initialize the batchData object
-    //     let batchData = {
-    //         timestamps: [],
-    //         dataPointIDs: [],
-    //     };
-    //
-    //     // Add an array for each channel
-    //     for (let channel = 1; channel <= numberOfChannels; channel++) {
-    //         batchData[`channel${channel}Values`] = [];
-    //     }
-    //
-    //     for (let i = 0; i < numberOfDataPoints; i++) {
-    //         const offset = i * datapointSize;
-    //         const view = new DataView(arrayBuffer, offset, datapointSize);
-    //
-    //         batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
-    //
-    //         // Populate each channel's values
-    //         for (let channel = 0; channel < numberOfChannels; channel++) {
-    //             batchData[`channel${channel + 1}Values`].push(view.getUint32(timestampSize + (channel * channelValueSize)));
-    //         }
-    //
-    //         // Add the data point ID
-    //         batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize)));
-    //     }
-    //
-    //     dataEmitter.emit('dataBatch', batchData);
-    // }
-
-
 
 };
 
@@ -148,15 +107,18 @@ ws.onclose = function (event) {
     console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
     console.log(`Total data points received: ${totalDataPointsReceived}`);
     console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
+    console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+    // console.log('this is allBatchesReceived : ', allBatchesReceived);
+    // downloadJSON(allBatchesReceived, 'allReceivedBatches.json');
+    downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels.json`);
 };
 
 
-
+//--------------------------------  HELPING FUNCTIONS -----------------------------------------------------
 
 function bytesToKilobytes(bytes) {
     return bytes / 1024;
 }
-
 
 function formatTime(date) {
     if (!(date instanceof Date)) {
@@ -171,3 +133,23 @@ function formatTime(date) {
     return `${hours}:${minutes}:${seconds}:${milliseconds}`;
 }
 
+
+function downloadJSON(data, filename) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // Create a link element
+    const a = document.createElement('a');
+    // Set link's href to point to the Blob URL
+    a.href = url;
+    a.download = filename;
+    // Append link to the body
+    document.body.appendChild(a);
+    // Dispatch click event on the link
+    // This is necessary because link.click() does not work on some browsers
+    a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    // Remove link from body
+    document.body.removeChild(a);
+    // Release the Blob URL
+    URL.revokeObjectURL(url);
+}
