@@ -67,8 +67,31 @@ const latencyResults: Latency[] = receivedBatches.map((receivedBatch) => {
     };
 });
 
+
+const extractDynamicPart = (filename: string): string => {
+    const match = filename.match(/all(?:Received|Sent)Batches(_\d+_channels_\d+_dp_per_batch)/);
+    if (!match) {
+        throw new Error(`Filename ${filename} does not match the expected pattern.`);
+    }
+    return match[1]; // Returns the captured group from the regex
+};
+
+
+// const extractDynamicPart = (filename: string): string => {
+//     const match = filename.match(/all(?:Received|Sent)Batches(_\d+_channels_\d+_dp_per_batch)/);
+//     if (!match) {
+//         throw new Error(`Filename ${filename} does not match the expected pattern.`);
+//     }
+//     return match[1]; // Returns the captured group from the regex
+// };
+
+const dynamicPart = extractDynamicPart(receivedFiles[0]);
+
 // Write the results to a file
-const outputPath = path.join(directoryPath, 'latency.json');
+// const outputPath = path.join(directoryPath, 'latency.json');
+const outputPath = path.join(directoryPath, `latency${dynamicPart}.json`);
 fs.writeFileSync(outputPath, JSON.stringify(latencyResults, null, 2), 'utf-8');
 
 console.log('Latency calculation completed and saved to latency.json');
+
+// ##################################################### HELPING FUNCTIONS ########################################################

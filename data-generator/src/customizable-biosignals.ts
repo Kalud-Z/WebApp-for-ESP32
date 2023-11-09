@@ -64,47 +64,6 @@ wss.on('connection', (ws: WebSocket) => {
 
     const channelWaveTypes = Array.from({ length: numberOfChannels }, () => Math.random() < 0.5);
 
-    // Function to generate dummy sensor data as a binary buffer
-    // const generateDummySensorDataBatch = () => {
-    //     const dataPoints = [];
-    //     let ns = process.hrtime.bigint(); // Initial timestamp in nanoseconds
-    //     const nsGap = BigInt(intervalBetweenDataPoints_inMilliSeconds) * BigInt(1_000_000); // Gap in nanoseconds
-    //     const totalPointsInPeriod = 1000; // Points in one period
-    //
-    //     const min = 10000000;
-    //     const max = 16777215;
-    //
-    //     for (let i = 0; i < numberOfDataPointsPerBatch; i++) {
-    //         totalDataPointsGenerated++; // Increment total data points generated
-    //
-    //         const bufferSize = 8 + (numberOfChannels * 4) + 4;
-    //         const buffer = Buffer.alloc(bufferSize);
-    //         buffer.writeBigUInt64BE(ns, 0);
-    //
-    //         for (let j = 0; j < numberOfChannels; j++) {
-    //             const isSine = channelWaveTypes[j];
-    //
-    //             // Calculate the angle for the wave based on the current data point and the total points in a period
-    //             const angle = (2 * Math.PI * (totalDataPointsGenerated % totalPointsInPeriod)) / totalPointsInPeriod;
-    //
-    //             // Use the appropriate function to generate the data based on the type
-    //             const value = isSine
-    //                 ? generateSineData(angle, min, max)
-    //                 : generateSawtoothData(totalDataPointsGenerated, totalPointsInPeriod, min, max);
-    //
-    //             buffer.writeUInt32BE(value, 8 + (j * 4));
-    //         }
-    //
-    //         buffer.writeUInt32BE(dataPointId++, 8 + (numberOfChannels * 4));
-    //         dataPoints.push(buffer);
-    //
-    //         ns = ns + nsGap;
-    //     }
-    //
-    //     return Buffer.concat(dataPoints);
-    // };
-
-
     let batchID = 0;
 
     const generateDummySensorDataBatch = () => {
@@ -145,7 +104,6 @@ wss.on('connection', (ws: WebSocket) => {
         const dataPointsBuffer = Buffer.concat(dataPoints); // Concatenate all data point buffers
         return Buffer.concat([batchBuffer, dataPointsBuffer]); // Prepend the batch ID to the data points buffer
     };
-
 
     // Send binary sensor data at a specified rate
     const intervalId = setInterval(() => {
@@ -199,9 +157,11 @@ wss.on('connection', (ws: WebSocket) => {
 
         // Define the path and filename
         // const dirPath = '/home/kalud/saved-data-from-server';
-        const dirPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
+        // const dirPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
+        const dirPath = __dirname;
         // const fileName = 'allSentBatches.json';
-        const fileName = `allSentBatches_${numberOfChannels}_channels.json`;
+        // const fileName = `allSentBatches_${numberOfChannels}_channels.json`;
+        const fileName = `allSentBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`;
         const filePath = path.join(dirPath, fileName);
 
         // Call the function to save allSentBatches to a file

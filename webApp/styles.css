@@ -48,3 +48,11 @@ body {
     justify-content: center;
     align-items: center;
 }
+
+#startButton {
+    position: absolute;
+    top:4px;
+    left:4px;
+    width: 13rem;
+    height: 5rem;
+}
