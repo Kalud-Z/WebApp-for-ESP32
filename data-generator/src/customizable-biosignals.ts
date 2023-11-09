@@ -38,8 +38,8 @@ wss.on('connection', (ws: WebSocket) => {
     let dataPointId = 0; // Initialize the ID counter
     let totalDataPointsGenerated = 0;
     let totalDataPointsSent = 0;
-    let latestDataReceivedAt = new Date(Date.now());
-    let latestDataReceivedAt_formatted: string;
+    let latestDataSentAt = new Date(Date.now());
+    let latestDataSentAt_formatted: string;
 
 
 
@@ -110,7 +110,7 @@ wss.on('connection', (ws: WebSocket) => {
             ws.send(dataBufferBatch, (err) => {
                 if (err) { console.error('Send error: ', err) } else {
                     totalDataPointsSent += numberOfDataPointsPerBatch;
-                    latestDataReceivedAt = new Date(Date.now());
+                    latestDataSentAt = new Date(Date.now());
                 }
             });
         } catch (e) {
@@ -142,8 +142,8 @@ wss.on('connection', (ws: WebSocket) => {
         console.log('Client disconnected');
         console.log('totalDataPointsGenerated : ', totalDataPointsGenerated);
         console.log('Total data points sent successfully: ' ,totalDataPointsSent);
-        latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt);
-        console.log('Latest Data sent at : ', latestDataReceivedAt_formatted);
+        latestDataSentAt_formatted = formatTime(latestDataSentAt);
+        console.log('Latest Data sent at : ', latestDataSentAt_formatted);
         clearInterval(intervalId);
     });
 });
