@@ -174,6 +174,11 @@ wss.on('connection', (ws: WebSocket) => {
     });
 });
 
+
+
+
+//---------- HELPING FUNCTIONS ---------------------------------------------
+
 function bytesToKilobytes(bytes: number) {
     return bytes / 1024;
 }
