@@ -2,6 +2,9 @@ import express from 'express';
 import http from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
 import { AddressInfo } from 'net';
+import fs from 'fs';
+import path from 'path';
+
 
 // Initialize a simple HTTP server
 const app = express();
@@ -10,11 +13,16 @@ const server = http.createServer(app);
 // Initialize the WebSocket server instance
 const wss = new WebSocketServer({ server });
 
+interface sentBatch {
+    batchID: number;
+    timestamp: Date;
+}
+
+
 // const numberOfChannels: number = 15;
 const numberOfChannels: number = parseInt(process.env.CH ?? '10');
-
-
 const numberOfDataPointsPerBatch: number = 20;
+const allSentBatches: sentBatch[] = [];  // Track all sent batches with their timestamps
 
 
 app.get('/', (req, res) => {
@@ -40,7 +48,6 @@ wss.on('connection', (ws: WebSocket) => {
     let totalDataPointsSent = 0;
     let latestDataSentAt = new Date(Date.now());
     let latestDataSentAt_formatted: string;
-
 
 
     // Function to generate sine wave data
@@ -98,6 +105,7 @@ wss.on('connection', (ws: WebSocket) => {
     };
 
 
+    let batchID = 0;
 
     // Send binary sensor data at a specified rate
     const intervalId = setInterval(() => {
@@ -111,6 +119,7 @@ wss.on('connection', (ws: WebSocket) => {
                 if (err) { console.error('Send error: ', err) } else {
                     totalDataPointsSent += numberOfDataPointsPerBatch;
                     latestDataSentAt = new Date(Date.now());
+                    allSentBatches.push({ batchID: batchID++, timestamp: new Date(latestDataSentAt) });
                 }
             });
         } catch (e) {
@@ -132,7 +141,7 @@ wss.on('connection', (ws: WebSocket) => {
         clearInterval(intervalId);
         ws.close();
         console.log(`Total amount of data sent: ${ bytesToKilobytes(totalBytesSentFinal)} kb.`);
-    }, 30000);
+    }, 10000);
 
     ws.on('message', (message) => {
         console.log(`Received message => ${message}`);
@@ -144,7 +153,24 @@ wss.on('connection', (ws: WebSocket) => {
         console.log('Total data points sent successfully: ' ,totalDataPointsSent);
         latestDataSentAt_formatted = formatTime(latestDataSentAt);
         console.log('Latest Data sent at : ', latestDataSentAt_formatted);
+        console.log('#############################################')
         clearInterval(intervalId);
+
+        // Define the path and filename
+        // const dirPath = '/home/kalud/saved-data-from-server';
+        const dirPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
+        const fileName = 'allSentBatches.json';
+        const filePath = path.join(dirPath, fileName);
+
+        // Call the function to save allSentBatches to a file
+        saveDataToFile(filePath, allSentBatches, (err) => {
+            if (err) {
+                console.error('An error occurred while writing JSON Object to File.', err);
+            } else {
+                console.log('JSON file has been saved.');
+            }
+        });
+
     });
 });
 
@@ -160,6 +186,24 @@ function formatTime(date: Date) {
 
     return `${hours}:${minutes}:${seconds}:${milliseconds}`;
 }
+
+function saveDataToFile(filePath: string, data: any, callback: (error?: NodeJS.ErrnoException | null) => void) {
+    // Convert the data to a JSON string with pretty printing
+    const jsonData = JSON.stringify(data, null, 2);
+
+    // Write the JSON string to the file system
+    fs.writeFile(filePath, jsonData, 'utf8', (err) => {
+        if (err) {
+            // If an error occurs, execute the callback with the error as a parameter
+            callback(err);
+        } else {
+            // If no error, execute the callback with no parameters to indicate success
+            callback();
+        }
+    });
+}
+
+
 //#######################################################################################################################
 
 // Start our server on all IPv4 addresses available to the operating system.
