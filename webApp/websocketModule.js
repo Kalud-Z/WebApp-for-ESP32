@@ -15,8 +15,8 @@ function startTheApp() {
 
     const numberOfDataPointsPerBatch = 20; //TODO : calculate this dynamically.
 
-    // const ws = new WebSocket('ws://localhost:8999');
-    const ws = new WebSocket('ws://192.168.3.5:8999');
+    const ws = new WebSocket('ws://localhost:8999');
+    // const ws = new WebSocket('ws://192.168.3.5:8999');
 
     ws.binaryType = 'arraybuffer';
 

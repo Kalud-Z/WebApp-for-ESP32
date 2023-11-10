@@ -46,7 +46,8 @@ wss.on('connection', (ws: WebSocket) => {
     let dataPointId = 0; // Initialize the ID counter
     let totalDataPointsGenerated = 0;
     let totalDataPointsSent = 0;
-    let latestDataSentAt = new Date(Date.now());
+    // let latestDataSentAt = new Date(Date.now());
+    let latestDataSentAt = new Date();
     let latestDataSentAt_formatted: string;
 
 
@@ -116,7 +117,8 @@ wss.on('connection', (ws: WebSocket) => {
             ws.send(dataBufferBatch, (err) => {
                 if (err) { console.error('Send error: ', err) } else {
                     totalDataPointsSent += numberOfDataPointsPerBatch;
-                    latestDataSentAt = new Date(Date.now());
+                    // latestDataSentAt = new Date(Date.now());
+                    latestDataSentAt = new Date();
                     // allSentBatches.push({ batchID: batchID++, timestamp: new Date(latestDataSentAt) });
                     allSentBatches.push({ batchID: batchID++, timestamp: formatTime(latestDataSentAt) });
                 }
