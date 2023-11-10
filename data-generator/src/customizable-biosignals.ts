@@ -140,7 +140,7 @@ wss.on('connection', (ws: WebSocket) => {
         clearInterval(intervalId);
         ws.close();
         console.log(`Total amount of data sent: ${ bytesToKilobytes(totalBytesSentFinal)} kb.`);
-    }, 10000);
+    }, 30000);
 
     ws.on('message', (message) => {
         console.log(`Received message => ${message}`);
@@ -155,12 +155,8 @@ wss.on('connection', (ws: WebSocket) => {
         console.log('#############################################')
         clearInterval(intervalId);
 
-        // Define the path and filename
-        // const dirPath = '/home/kalud/saved-data-from-server';
         // const dirPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
         const dirPath = __dirname;
-        // const fileName = 'allSentBatches.json';
-        // const fileName = `allSentBatches_${numberOfChannels}_channels.json`;
         const fileName = `allSentBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`;
         const filePath = path.join(dirPath, fileName);
 
