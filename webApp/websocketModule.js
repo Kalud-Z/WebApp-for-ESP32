@@ -15,20 +15,14 @@ function startTheApp() {
 
     const numberOfDataPointsPerBatch = 20; //TODO : calculate this dynamically.
 
-
-    const ws = new WebSocket('ws://localhost:8999');
-// const ws = new WebSocket('ws://185.237.15.90:8999');
-// const ws = new WebSocket('ws://192.168.3.5:8999');
-
-
+    // const ws = new WebSocket('ws://localhost:8999');
+    const ws = new WebSocket('ws://192.168.3.5:8999');
 
     ws.binaryType = 'arraybuffer';
-
 
     ws.onopen = function (event) {
         console.log('WebSocket connection established');
     };
-
 
     let lastFrameTime = Date.now();
 
@@ -106,7 +100,6 @@ function startTheApp() {
 
     };
 
-
     ws.onerror = function (error) {
         console.error('WebSocket Error: ', error);
     };
@@ -117,9 +110,6 @@ function startTheApp() {
         console.log(`Total data points received: ${totalDataPointsReceived}`);
         console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
         console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        // console.log('this is allBatchesReceived : ', allBatchesReceived);
-        // downloadJSON(allBatchesReceived, 'allReceivedBatches.json');
-        // downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels.json`);
         downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
     };
 
