@@ -53,13 +53,8 @@ function startTheApp() {
             const view = new DataView(arrayBuffer);
             const batchID = view.getUint32(0); // Read the batch ID from the start of the buffer
 
-            // const batchTimestamp = new Date().toISOString(); // Get the current timestamp
-            // allBatchesReceived.push({ batchID: batchID, timestamp: batchTimestamp });
-
             const batchTimestamp = formatTime(new Date()); // Format the current timestamp
             allBatchesReceived.push({ batchID: batchID, timestamp: batchTimestamp });
-
-
 
             // Calculate the number of data points, subtracting the batchIdSize from the buffer length first
             const numberOfDataPoints = (arrayBuffer.byteLength - batchIdSize) / datapointSize;
