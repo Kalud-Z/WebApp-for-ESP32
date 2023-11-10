@@ -21,7 +21,7 @@ interface sentBatch {
 
 // const numberOfChannels: number = 15;
 const numberOfChannels: number = parseInt(process.env.CH ?? '10');
-const numberOfDataPointsPerBatch: number = 10;
+const numberOfDataPointsPerBatch: number = 20;
 const allSentBatches: sentBatch[] = [];  // Track all sent batches with their timestamps
 
 
