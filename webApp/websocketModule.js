@@ -7,13 +7,13 @@ export let numberOfChannels;
 
 
 function startTheApp() {
+    const numberOfDataPointsPerBatch = 10; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
     let latestDataReceivedAt; let latestDataReceivedAt_formatted;
     let allBatchesReceived = [];
 
-    const numberOfDataPointsPerBatch = 20; //TODO : calculate this dynamically.
 
     // const ws = new WebSocket('ws://localhost:8999');
     // const ws = new WebSocket('ws://192.168.3.5:8999'); //Youssou-Laptop
