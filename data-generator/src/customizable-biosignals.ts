@@ -208,8 +208,34 @@ function saveDataToFile(filePath: string, data: any, callback: (error?: NodeJS.E
     });
 }
 
+function deleteExistingBatchFiles() {
+    const directoryPath = __dirname;
+    fs.readdir(directoryPath, (err, files) => {
+        if (err) {
+            console.error('Could not list the directory.', err);
+            process.exit(1);
+        }
+
+        files.forEach(file => {
+            if (file.includes('allSentBatches')) {
+                const filePath = path.join(directoryPath, file);
+                fs.unlink(filePath, unlinkErr => {
+                    if (unlinkErr) {
+                        console.error('Error deleting file:', filePath, unlinkErr);
+                    } else {
+                        console.log('Deleted file:', filePath);
+                    }
+                });
+            }
+        });
+    });
+}
 
 //#######################################################################################################################
+
+
+// Call the function to delete existing batch files
+deleteExistingBatchFiles();
 
 // Start our server on all IPv4 addresses available to the operating system.
 server.listen(Number(process.env.PORT) || 8999, '0.0.0.0', () => {
