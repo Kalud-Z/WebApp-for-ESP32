@@ -8,8 +8,9 @@ directory = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__
 # List all files in the directory
 files = os.listdir(directory)
 
-# Filter for files that contain 'latency' in the name
-latency_files = [file for file in files if 'latency' in file]
+
+# Filter for files that contain both 'latency' and 'channels' in the name
+latency_files = [file for file in files if 'latency' in file and 'channels' in file]
 
 # Initialize a figure for plotting
 plt.figure(figsize=(10, 5))
@@ -28,7 +29,7 @@ for file_name in latency_files:
     latencies = [item['latency'] for item in data]
 
     # Plotting the data with a thinner line and no markers
-    plt.plot(batch_ids, latencies, linewidth=2.5, label=file_name)  # Thinner line with no markers
+    plt.plot(batch_ids, latencies, linewidth=1.5, label=file_name)  # Thinner line with no markers
 
 
 # After plotting all files, finalize the plot details
