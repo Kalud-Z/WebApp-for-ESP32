@@ -1,7 +1,7 @@
 import { numberOfChannels } from './websocketModule.js';
 
-const intervalRate = 100; // in ms. The rate at which the server sends the data.
-const howManyDataPointPerBatch = 100;  // The server sends 10 datapoints per batch.
+const intervalRate = 250; // in ms. The rate at which the server sends the data.
+const howManyDataPointPerBatch = 250;  // The server sends 10 datapoints per batch.
 const timeFrameOfVisibleData = 5; // in seconds.
 
 export default function setupCharting(dataEmitter) {
