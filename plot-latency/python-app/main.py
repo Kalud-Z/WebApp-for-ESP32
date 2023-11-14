@@ -21,7 +21,12 @@ for file_name in latency_files:
     batch_ids = [item['batchID'] for item in data]
     latencies = [item['latency'] for item in data]
 
-    plt.plot(batch_ids, latencies, linewidth=1.5, label=file_name)  # Thinner line with no markers
+    plt.plot(batch_ids, latencies, linewidth=1.5)  # Thinner line with no markers
+
+    # Add text at the end of each curve
+    end_x = batch_ids[-1]
+    end_y = latencies[-1]
+    plt.text(end_x, end_y, file_name, fontsize=9, verticalalignment='bottom')
 
 
 plt.title('Latency per Batch Comparison')
