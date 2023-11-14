@@ -6,7 +6,6 @@ directory = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__
 
 files = os.listdir(directory)
 
-
 latency_files = [file for file in files if 'latency' in file and 'channels' in file]
 
 plt.figure(figsize=(10, 5))
@@ -21,22 +20,23 @@ for file_name in latency_files:
     batch_ids = [item['batchID'] for item in data]
     latencies = [item['latency'] for item in data]
 
-    plt.plot(batch_ids, latencies, linewidth=1.5)  # Thinner line with no markers
+    #plt.plot(batch_ids, latencies, linewidth=1.5, label=file_name)  # Add label for legend
+    plt.plot(batch_ids, latencies, linewidth=0.5, label=file_name, marker='o', markersize=3)  # Adjust markersize as needed
 
     # Add text at the end of each curve
     end_x = batch_ids[-1]
     end_y = latencies[-1]
-    plt.text(end_x, end_y, file_name, fontsize=9, verticalalignment='bottom')
-
+    #plt.text(end_x, end_y, file_name, fontsize=9, verticalalignment='bottom') #show file name next to each curve
 
 plt.title('Latency per Batch Comparison')
 plt.xlabel('Batch ID')
 plt.ylabel('Latency (ms)')
 plt.grid(True)
-plt.legend()
-plt.tight_layout()
+#plt.legend(loc='upper left')  # Position the legend in the top left corner
+
+# Place the legend outside the plot
+plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+plt.tight_layout(rect=[0, 0, 1.1, 1])  # Adjust the rect parameter as needed
 
 plt.show()
-
-
-
