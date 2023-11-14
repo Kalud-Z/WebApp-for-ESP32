@@ -7,7 +7,7 @@ export let numberOfChannels;
 
 
 function startTheApp() {
-    const numberOfDataPointsPerBatch = 20; //TODO : calculate this dynamically.
+    const numberOfDataPointsPerBatch = 50; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
