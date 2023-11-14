@@ -1,16 +1,17 @@
-import os
+##########   USING PLOTLY   #####################################################
+
+import plotly.graph_objects as go
 import json
-import matplotlib.pyplot as plt
+import os
 
 directory = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results'
 
 files = os.listdir(directory)
-
 latency_files = [file for file in files if 'latency' in file and 'channels' in file]
 
-plt.figure(figsize=(10, 5))
+fig = go.Figure()
 
-# Loop through each latency file and plot the data
+# Loop through each latency file and add a trace to the plot
 for file_name in latency_files:
     file_path = os.path.join(directory, file_name)
 
@@ -20,23 +21,17 @@ for file_name in latency_files:
     batch_ids = [item['batchID'] for item in data]
     latencies = [item['latency'] for item in data]
 
-    #plt.plot(batch_ids, latencies, linewidth=1.5, label=file_name)  # Add label for legend
-    plt.plot(batch_ids, latencies, linewidth=0.5, label=file_name, marker='o', markersize=3)  # Adjust markersize as needed
+    # Add a trace for each file
+    fig.add_trace(go.Scatter(x=batch_ids, y=latencies, mode='lines+markers', name=file_name))
 
-    # Add text at the end of each curve
-    end_x = batch_ids[-1]
-    end_y = latencies[-1]
-    #plt.text(end_x, end_y, file_name, fontsize=9, verticalalignment='bottom') #show file name next to each curve
+fig.update_layout(
+    title='Latency per Batch Comparison',
+    xaxis_title='Batch ID',
+    yaxis_title='Latency (ms)',
+    legend_title='File Names'
+)
 
-plt.title('Latency per Batch Comparison')
-plt.xlabel('Batch ID')
-plt.ylabel('Latency (ms)')
-plt.grid(True)
-#plt.legend(loc='upper left')  # Position the legend in the top left corner
 
-# Place the legend outside the plot
-plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+fig.write_html("/home/kalud/latency_plot.html")
 
-plt.tight_layout(rect=[0, 0, 1.1, 1])  # Adjust the rect parameter as needed
-
-plt.show()
+fig.show()
