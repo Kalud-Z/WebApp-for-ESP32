@@ -1,5 +1,5 @@
-import { EventEmitter } from './event-emitter.js';
-class WebSocketEmitter extends EventEmitter {}
+import { EventEmitterModule } from './eventEmitterModule.js';
+class WebSocketEmitter extends EventEmitterModule {}
 
 export const dataEmitter = new WebSocketEmitter();
 
@@ -15,10 +15,10 @@ function startTheApp() {
     let allBatchesReceived = [];
 
 
-    // const ws = new WebSocket('ws://localhost:8999');
+    const ws = new WebSocket('ws://localhost:8999');
     // const ws = new WebSocket('ws://192.168.3.5:8999'); //Youssou-Laptop
     // const ws = new WebSocket('ws://185.237.15.90:8999'); //Ubuntu-remote-server
-    const ws = new WebSocket('ws://192.168.3.5:8999'); //rp-ubuntu-server
+    // const ws = new WebSocket('ws://192.168.3.5:8999'); //rp-ubuntu-server
 
     ws.binaryType = 'arraybuffer';
 

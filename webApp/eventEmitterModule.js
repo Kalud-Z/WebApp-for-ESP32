@@ -1,5 +1,4 @@
-// event-emitter.js
-export class EventEmitter {
+export class EventEmitterModule {
     constructor() {
         this.events = {};
     }
