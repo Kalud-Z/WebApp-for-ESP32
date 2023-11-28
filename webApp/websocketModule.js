@@ -3,11 +3,12 @@ class WebSocketEmitter extends EventEmitterModule {}
 
 export const dataEmitter = new WebSocketEmitter();
 
-export let numberOfChannels;
+// export let numberOfChannels;
+export let numberOfChannels = 3;
 
 
-function startTheApp() {
-    const numberOfDataPointsPerBatch = 20; //TODO : calculate this dynamically.
+function startTheApp()   {
+    const numberOfDataPointsPerBatch = 5; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
@@ -15,8 +16,8 @@ function startTheApp() {
     let allBatchesReceived = [];
 
 
-    const ws = new WebSocket('ws://localhost:8999');
-    // const ws = new WebSocket('ws://192.168.3.5:8999'); //Youssou-Laptop
+    // const ws = new WebSocket('ws://localhost:8999');
+    const ws = new WebSocket('ws://192.168.3.5:8999/ws'); //ESP32
     // const ws = new WebSocket('ws://185.237.15.90:8999'); //Ubuntu-remote-server
     // const ws = new WebSocket('ws://192.168.3.5:8999'); //rp-ubuntu-server
 
@@ -33,7 +34,8 @@ function startTheApp() {
         let frameDelay = now - lastFrameTime;
         lastFrameTime = now;
 
-        // Handle configuration message
+        // console.log('we just got message : ', event.data);
+
         if (typeof event.data === 'string') {
             const message = JSON.parse(event.data);
             if (message.type === 'configuration') {
@@ -92,9 +94,10 @@ function startTheApp() {
                 batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize)));
             }
 
+            console.log('batchData : ', batchData);
+            console.log('############################################################')
             dataEmitter.emit('dataBatch', batchData);
         }
-
     };
 
     ws.onerror = function (error) {
@@ -107,7 +110,7 @@ function startTheApp() {
         console.log(`Total data points received: ${totalDataPointsReceived}`);
         console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
         console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
+        // downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
     };
 
 }

@@ -32,7 +32,7 @@ wss.on('connection', (ws: WebSocket) => {
         let ns = process.hrtime.bigint(); // Initial timestamp in nanoseconds
         const nsGap = BigInt(gapBetweenTimeStamps_inMilliSeconds) * BigInt(1_000_000); // 50ms gap in nanoseconds
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
             const min = 80479;
             const max = 119479;
             const rd = Math.floor(Math.random() * (max - min + 1)) + min;
