@@ -34,8 +34,6 @@ function startTheApp()   {
         let frameDelay = now - lastFrameTime;
         lastFrameTime = now;
 
-        console.log('we just got message : ', event.data);
-
         if (typeof event.data === 'string') {
             const message = JSON.parse(event.data);
             if (message.type === 'configuration') {
@@ -83,21 +81,15 @@ function startTheApp()   {
             // Adjust the loop to start reading after the batch ID
             for (let i = 0; i < numberOfDataPoints; i++) {
                 const offset = batchIdSize + (i * datapointSize);
-                console.log('nr of channels : ', numberOfChannels)
-                console.log('nr of datapoints : ', numberOfDataPoints)
                 const view = new DataView(arrayBuffer, offset, datapointSize);
-
                 batchData.timestamps.push(Number(view.getBigUint64(0, true)) / 1e6); // Read timestamp as little-endian and convert to seconds
-
 
                 // Populate each channel's values
                 for (let channel = 0; channel < numberOfChannels; channel++) {
                     batchData[`channel${channel + 1}Values`].push(view.getUint32(timestampSize + (channel * channelValueSize), true));
                 }
 
-                // Add the data point ID
                 batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize), true)); // Read ID as little-endian
-
             }
 
             console.log('batchData : ', batchData);
@@ -112,10 +104,10 @@ function startTheApp()   {
 
     ws.onclose = function (event) {
         console.log('WebSocket connection closed');
-        console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
-        console.log(`Total data points received: ${totalDataPointsReceived}`);
-        console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
-        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+        // console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+        // console.log(`Total data points received: ${totalDataPointsReceived}`);
+        // console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
+        // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
         // downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
     };
 

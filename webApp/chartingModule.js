@@ -5,7 +5,6 @@ const howManyDataPointPerBatch = 2;  // The server sends 10 datapoints per batch
 const timeFrameOfVisibleData = 5; // in seconds.
 
 export default function setupCharting(dataEmitter) {
-    console.log('setupCharting is called : ', dataEmitter)
     let channelsData = [];
     let uplotInstances = [];
     const maxDataPoints = ((1000 / intervalRate) * timeFrameOfVisibleData) * howManyDataPointPerBatch;
@@ -26,8 +25,6 @@ export default function setupCharting(dataEmitter) {
     }
 
     dataEmitter.on('dataBatch', (batchData) => {
-        console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-
         for (let channelIndex = 1; channelIndex <= numberOfChannels; channelIndex++) {
             const channelKey = `channel${channelIndex}Values`;
             updateChartData(channelsData[channelIndex - 1], batchData.dataPointIDs, batchData[channelKey], maxDataPoints);
