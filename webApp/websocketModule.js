@@ -4,11 +4,11 @@ class WebSocketEmitter extends EventEmitterModule {}
 export const dataEmitter = new WebSocketEmitter();
 
 // export let numberOfChannels;
-export let numberOfChannels = 3;
+export let numberOfChannels = 2;
 
 
 function startTheApp()   {
-    const numberOfDataPointsPerBatch = 5; //TODO : calculate this dynamically.
+    const numberOfDataPointsPerBatch = 2; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
@@ -34,7 +34,7 @@ function startTheApp()   {
         let frameDelay = now - lastFrameTime;
         lastFrameTime = now;
 
-        // console.log('we just got message : ', event.data);
+        console.log('we just got message : ', event.data);
 
         if (typeof event.data === 'string') {
             const message = JSON.parse(event.data);
@@ -55,13 +55,15 @@ function startTheApp()   {
             const datapointSize = timestampSize + (numberOfChannels * channelValueSize) + idSize;
 
             const view = new DataView(arrayBuffer);
-            const batchID = view.getUint32(0); // Read the batch ID from the start of the buffer
+            // const batchID = view.getUint32(0); // Read the batch ID from the start of the buffer
+            const batchID = view.getUint32(0, true); // Read the batch ID as little-endian
+
 
             const batchTimestamp = formatTime(new Date()); // Format the current timestamp
             allBatchesReceived.push({ batchID: batchID, timestamp: batchTimestamp });
 
             // Calculate the number of data points, subtracting the batchIdSize from the buffer length first
-            const numberOfDataPoints = (arrayBuffer.byteLength - batchIdSize) / datapointSize;
+            const numberOfDataPoints = Math.floor((arrayBuffer.byteLength - batchIdSize) / datapointSize);
             totalDataPointsReceived += numberOfDataPoints;
             latestDataReceivedAt = new Date();
             latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt)
@@ -81,17 +83,21 @@ function startTheApp()   {
             // Adjust the loop to start reading after the batch ID
             for (let i = 0; i < numberOfDataPoints; i++) {
                 const offset = batchIdSize + (i * datapointSize);
+                console.log('nr of channels : ', numberOfChannels)
+                console.log('nr of datapoints : ', numberOfDataPoints)
                 const view = new DataView(arrayBuffer, offset, datapointSize);
 
-                batchData.timestamps.push(Number(view.getBigUint64(0)) / 1e9); // Convert to seconds
+                batchData.timestamps.push(Number(view.getBigUint64(0, true)) / 1e6); // Read timestamp as little-endian and convert to seconds
+
 
                 // Populate each channel's values
                 for (let channel = 0; channel < numberOfChannels; channel++) {
-                    batchData[`channel${channel + 1}Values`].push(view.getUint32(timestampSize + (channel * channelValueSize)));
+                    batchData[`channel${channel + 1}Values`].push(view.getUint32(timestampSize + (channel * channelValueSize), true));
                 }
 
                 // Add the data point ID
-                batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize)));
+                batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize), true)); // Read ID as little-endian
+
             }
 
             console.log('batchData : ', batchData);
