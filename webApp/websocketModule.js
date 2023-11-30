@@ -7,17 +7,23 @@ export const dataEmitter = new WebSocketEmitter();
 export let numberOfChannels = 2;
 
 
+let allBatchesReceived = [];
+
+
+
+
 function startTheApp()   {
     const numberOfDataPointsPerBatch = 2; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
     let latestDataReceivedAt; let latestDataReceivedAt_formatted;
-    let allBatchesReceived = [];
+    // let allBatchesReceived = [];
 
 
     // const ws = new WebSocket('ws://localhost:8999');
     const ws = new WebSocket('ws://192.168.3.5:8999/ws'); //ESP32
+    // const ws = new WebSocket('ws://192.168.43.253:8999/ws'); //ESP32
     // const ws = new WebSocket('ws://185.237.15.90:8999'); //Ubuntu-remote-server
     // const ws = new WebSocket('ws://192.168.3.5:8999'); //rp-ubuntu-server
 
@@ -104,11 +110,11 @@ function startTheApp()   {
 
     ws.onclose = function (event) {
         console.log('WebSocket connection closed');
-        // console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
-        // console.log(`Total data points received: ${totalDataPointsReceived}`);
-        // console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
-        // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        // downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
+        console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+        console.log(`Total data points received: ${totalDataPointsReceived}`);
+        console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
+        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+        downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
     };
 
 }
@@ -118,6 +124,10 @@ function startTheApp()   {
 document.getElementById('startButton').addEventListener('click', function() {
     startTheApp(); // This will call the function when the button is clicked
 });
+document.getElementById('showBatches').addEventListener('click', function() {
+    console.log('allBatchesReceived : ', allBatchesReceived)
+});
+
 
 
 function bytesToKilobytes(bytes) {

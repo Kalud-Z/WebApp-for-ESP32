@@ -49,10 +49,15 @@ body {
     align-items: center;
 }
 
-#startButton {
+#startButton, #showBatches {
     position: absolute;
     top:4px;
     left:4px;
     width: 13rem;
     height: 5rem;
 }
+
+#showBatches {
+    top:174px;
+}
+
