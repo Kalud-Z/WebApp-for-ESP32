@@ -38,6 +38,9 @@ function startTheApp()   {
         let frameDelay = now - lastFrameTime;
         lastFrameTime = now;
 
+        console.log('data : ', event.data);
+        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+
         if (typeof event.data === 'string') {
             const message = JSON.parse(event.data);
             if (message.type === 'configuration') {
@@ -55,38 +58,42 @@ function startTheApp()   {
                 }
             }
 
-        } else { // Handle binary data
+            if (message.type === 'timestampData') {
+            const timestampArray = message.value; // Assuming message.value contains the timestamp array
+            console.log('Timestamp Array:', timestampArray);
+        }
+
+        } else {
+            // Handle binary data
             const receivedBytes = event.data.byteLength;
             totalReceivedBytes += receivedBytes;
             const arrayBuffer = event.data;
-            //console.log("Received batch size in bytes: ", receivedBytes);
 
             // Define the sizes
+            const sendingTimestampSize = 8; // Size of the sending timestamp in bytes
             const batchIdSize = 4; // Size of the batch ID in bytes
             const timestampSize = 8; // Size of the timestamp in bytes
             const channelValueSize = 4; // Size of each channel value in bytes
             const idSize = 4; // Size of the data point ID in bytes
             const datapointSize = timestampSize + (numberOfChannels * channelValueSize) + idSize;
 
+            // Create a DataView for the arrayBuffer
             const view = new DataView(arrayBuffer);
-            // const batchID = view.getUint32(0); // Read the batch ID from the start of the buffer
-            const batchID = view.getUint32(0, true); // Read the batch ID as little-endian
 
+            // Read the sending timestamp
+            const sendingTimestamp = Number(view.getBigUint64(0, true)) / 1e6; // Convert to milliseconds
+            console.log('Sending Timestamp:', sendingTimestamp);
 
-            const batchTimestamp = formatTime(new Date()); // Format the current timestamp
-            allBatchesReceived.push({ batchID: batchID, timestamp: batchTimestamp });
+            // Read the batch ID (now starts after the sending timestamp)
+            const batchID = view.getUint32(sendingTimestampSize, true); // Read as little-endian
 
-            // Calculate the number of data points, subtracting the batchIdSize from the buffer length first
-            const numberOfDataPoints = Math.floor((arrayBuffer.byteLength - batchIdSize) / datapointSize);
-
-
-            totalDataPointsReceived += numberOfDataPoints;
-            latestDataReceivedAt = new Date();
-            latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt)
+            // Calculate the number of data points
+            const numberOfDataPoints = Math.floor((arrayBuffer.byteLength - sendingTimestampSize - batchIdSize) / datapointSize);
 
             // Initialize the batchData object
             let batchData = {
                 batchID: batchID,
+                sendingTimestamp: sendingTimestamp,
                 timestamps: [],
                 dataPointIDs: [],
                 // Add an array for each channel
@@ -96,22 +103,25 @@ function startTheApp()   {
                 batchData[`channel${channel}Values`] = [];
             }
 
-            // Adjust the loop to start reading after the batch ID
+            // Adjust the loop to start reading after the batch ID and sending timestamp
             for (let i = 0; i < numberOfDataPoints; i++) {
-                const offset = batchIdSize + (i * datapointSize);
-                const view = new DataView(arrayBuffer, offset, datapointSize);
-                batchData.timestamps.push(Number(view.getBigUint64(0, true)) / 1e6); // Read timestamp as little-endian and convert to seconds
+                const offset = sendingTimestampSize + batchIdSize + (i * datapointSize);
+                const dataView = new DataView(arrayBuffer, offset, datapointSize);
+
+                const dataTimestamp = Number(dataView.getBigUint64(0, true)) / 1e6; // Read timestamp as little-endian and convert to seconds
+                batchData.timestamps.push(dataTimestamp);
 
                 // Populate each channel's values
                 for (let channel = 0; channel < numberOfChannels; channel++) {
-                    batchData[`channel${channel + 1}Values`].push(view.getUint32(timestampSize + (channel * channelValueSize), true));
+                    const value = dataView.getUint32(timestampSize + (channel * channelValueSize), true);
+                    batchData[`channel${channel + 1}Values`].push(value);
                 }
 
-                batchData.dataPointIDs.push(view.getUint32(timestampSize + (numberOfChannels * channelValueSize), true)); // Read ID as little-endian
+                const dataPointID = dataView.getUint32(timestampSize + (numberOfChannels * channelValueSize), true); // Read ID as little-endian
+                batchData.dataPointIDs.push(dataPointID);
             }
 
-            console.log('batchData : ', batchData);
-            console.log('############################################################')
+            console.log('Processed Batch Data:', batchData);
             dataEmitter.emit('dataBatch', batchData);
         }
     };
