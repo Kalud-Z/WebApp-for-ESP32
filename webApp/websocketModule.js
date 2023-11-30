@@ -11,7 +11,7 @@ let allBatchesReceived = [];
 
 
 function startTheApp()   {
-    const numberOfDataPointsPerBatch = 10; //TODO : calculate this dynamically.
+    const numberOfDataPointsPerBatch = 20; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
