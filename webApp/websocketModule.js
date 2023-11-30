@@ -4,16 +4,14 @@ class WebSocketEmitter extends EventEmitterModule {}
 export const dataEmitter = new WebSocketEmitter();
 
 // export let numberOfChannels;
-export let numberOfChannels = 2;
+export let numberOfChannels;
 
 
 let allBatchesReceived = [];
 
 
-
-
 function startTheApp()   {
-    const numberOfDataPointsPerBatch = 2; //TODO : calculate this dynamically.
+    const numberOfDataPointsPerBatch = 10; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
@@ -46,10 +44,22 @@ function startTheApp()   {
                 numberOfChannels = message.channels;
                 dataEmitter.emit('configuration', numberOfChannels);
             }
+
+            if (message.type === 'simulationState') {
+                if(message.value === "DONE") {
+                    console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+                    console.log(`Total data points received: ${totalDataPointsReceived}`);
+                    console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
+                    console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+                    downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
+                }
+            }
+
         } else { // Handle binary data
             const receivedBytes = event.data.byteLength;
             totalReceivedBytes += receivedBytes;
             const arrayBuffer = event.data;
+            //console.log("Received batch size in bytes: ", receivedBytes);
 
             // Define the sizes
             const batchIdSize = 4; // Size of the batch ID in bytes
@@ -68,6 +78,8 @@ function startTheApp()   {
 
             // Calculate the number of data points, subtracting the batchIdSize from the buffer length first
             const numberOfDataPoints = Math.floor((arrayBuffer.byteLength - batchIdSize) / datapointSize);
+
+
             totalDataPointsReceived += numberOfDataPoints;
             latestDataReceivedAt = new Date();
             latestDataReceivedAt_formatted = formatTime(latestDataReceivedAt)
@@ -124,9 +136,9 @@ function startTheApp()   {
 document.getElementById('startButton').addEventListener('click', function() {
     startTheApp(); // This will call the function when the button is clicked
 });
-document.getElementById('showBatches').addEventListener('click', function() {
-    console.log('allBatchesReceived : ', allBatchesReceived)
-});
+// document.getElementById('showBatches').addEventListener('click', function() {
+//     console.log('allBatchesReceived : ', allBatchesReceived)
+// });
 
 
 
