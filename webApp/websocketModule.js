@@ -39,8 +39,7 @@ function startTheApp()   {
 
             if (message.type === 'simulationState') {
                 if(message.value === "DONE") {
-                    console.log(allBatchesSent);
-                    console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+                    console.log('Total size of Data received:' , totalReceivedBytes);
                     console.log(`Total data points received: ${totalDataPointsReceived}`);
                     console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
                     downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
@@ -67,8 +66,6 @@ function startTheApp()   {
 
             // Read the sending timestamp
             const sendingTimestamp = Number(view.getBigUint64(0, true)); // Convert to milliseconds
-            console.log('Sending Timestamp:', formatTime(sendingTimestamp));
-
 
             // Read the batch ID (now starts after the sending timestamp)
             const batchID = view.getUint32(sendingTimestampSize, true); // Read as little-endian
@@ -95,7 +92,6 @@ function startTheApp()   {
                 batchData[`channel${channel}Values`] = [];
             }
 
-            // Adjust the loop to start reading after the batch ID and sending timestamp
             for (let i = 0; i < numberOfDataPoints; i++) {
                 const offset = sendingTimestampSize + batchIdSize + (i * datapointSize);
                 const dataView = new DataView(arrayBuffer, offset, datapointSize);
@@ -113,7 +109,6 @@ function startTheApp()   {
                 batchData.dataPointIDs.push(dataPointID);
             }
 
-            console.log('Processed Batch Data:', batchData);
             dataEmitter.emit('dataBatch', batchData);
         }
     };
@@ -123,11 +118,7 @@ function startTheApp()   {
     };
 
     ws.onclose = function (event) {
-        // console.log('WebSocket connection closed');
-        // console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
-        // console.log(`Total data points received: ${totalDataPointsReceived}`);
-        // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        // downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
+        console.log('ws connection closed.')
     };
 
 }

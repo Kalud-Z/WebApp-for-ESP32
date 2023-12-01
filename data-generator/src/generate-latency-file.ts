@@ -29,7 +29,7 @@ const readJsonFile = (filePath: string): Batch[] => {
 };
 
 // The directory containing your files
-const directoryPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results';
+const directoryPath = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Entwicklung-auf-ESP32__WIP__/__Testing__/latency-results';
 
 // Function to find files by pattern
 const findFilesByPattern = (dir: string, pattern: RegExp): string[] => {

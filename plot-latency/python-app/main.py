@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import json
 import os
 
-directory = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Lokale_Entwicklung____WIP___/latency-results'
+directory = '/home/kalud/Desktop/KZ/Synced/Studium-stuff/WS-2023___CURRENT___/__Bachelor_Arbeit__/Benno-Dömer__MAIN/Einarbeitung/__Dev-Board__WIP/docs/__Entwicklung-auf-ESP32__WIP__/__Testing__/latency-results'
 
 files = os.listdir(directory)
 latency_files = [file for file in files if 'latency' in file and 'channels' in file]
