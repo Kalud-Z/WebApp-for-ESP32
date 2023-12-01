@@ -8,6 +8,7 @@ export let numberOfChannels;
 
 
 let allBatchesReceived = [];
+let allBatchesSent = [];
 
 
 function startTheApp()   {
@@ -15,9 +16,6 @@ function startTheApp()   {
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
-    let latestDataReceivedAt_formatted;
-    // let allBatchesReceived = [];
-
 
     // const ws = new WebSocket('ws://localhost:8999');
     const ws = new WebSocket('ws://192.168.3.5:8999/ws'); //ESP32
@@ -31,16 +29,7 @@ function startTheApp()   {
         console.log('WebSocket connection established');
     };
 
-    let lastFrameTime = Date.now();
-
     ws.onmessage = function (event) {
-        let now = Date.now();
-        let frameDelay = now - lastFrameTime;
-        lastFrameTime = now;
-
-        console.log('data : ', event.data);
-        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-
         if (typeof event.data === 'string') {
             const message = JSON.parse(event.data);
             if (message.type === 'configuration') {
@@ -50,18 +39,14 @@ function startTheApp()   {
 
             if (message.type === 'simulationState') {
                 if(message.value === "DONE") {
+                    console.log(allBatchesSent);
                     console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
                     console.log(`Total data points received: ${totalDataPointsReceived}`);
-                    console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
                     console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
                     downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
+                    downloadJSON(allBatchesSent, `allSentBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
                 }
             }
-
-            if (message.type === 'timestampData') {
-            const timestampArray = message.value; // Assuming message.value contains the timestamp array
-            console.log('Timestamp Array:', timestampArray);
-        }
 
         } else {
             // Handle binary data
@@ -82,15 +67,20 @@ function startTheApp()   {
 
             // Read the sending timestamp
             const sendingTimestamp = Number(view.getBigUint64(0, true)); // Convert to milliseconds
-            console.log('Sending Timestamp:', formatTimestamp(sendingTimestamp));
-            console.log('Sending Timestamp:', sendingTimestamp);
+            console.log('Sending Timestamp:', formatTime(sendingTimestamp));
 
 
             // Read the batch ID (now starts after the sending timestamp)
             const batchID = view.getUint32(sendingTimestampSize, true); // Read as little-endian
 
+            const batchTimestamp = formatTime(new Date()); // Format the current timestamp
+            allBatchesReceived.push({ batchID: batchID, timestamp: batchTimestamp });
+
+            allBatchesSent.push({ batchID: batchID,  timestamp: formatTime(sendingTimestamp) });
+
             // Calculate the number of data points
             const numberOfDataPoints = Math.floor((arrayBuffer.byteLength - sendingTimestampSize - batchIdSize) / datapointSize);
+            totalDataPointsReceived += numberOfDataPoints;
 
             // Initialize the batchData object
             let batchData = {
@@ -133,12 +123,11 @@ function startTheApp()   {
     };
 
     ws.onclose = function (event) {
-        console.log('WebSocket connection closed');
-        console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
-        console.log(`Total data points received: ${totalDataPointsReceived}`);
-        console.log(`Latest Data received at: ${latestDataReceivedAt_formatted}`);
-        console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
+        // console.log('WebSocket connection closed');
+        // console.log(`Total size of date received: ${bytesToKilobytes(totalReceivedBytes)} kb.`);
+        // console.log(`Total data points received: ${totalDataPointsReceived}`);
+        // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+        // downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
     };
 
 }
@@ -179,9 +168,45 @@ function downloadJSON(data, filename) {
 }
 
 
-function formatTimestamp(timestampMilliseconds) {
-    // Create a new Date object using the milliseconds timestamp
-    const date = new Date(timestampMilliseconds);
+// function formatTimestamp(timestampMilliseconds) {
+//     // Create a new Date object using the milliseconds timestamp
+//     const date = new Date(timestampMilliseconds);
+//
+//     // Format hours, minutes, seconds, and milliseconds
+//     const hours = date.getHours().toString().padStart(2, '0');
+//     const minutes = date.getMinutes().toString().padStart(2, '0');
+//     const seconds = date.getSeconds().toString().padStart(2, '0');
+//     const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+//
+//     // Combine the parts into a formatted string
+//     return `${hours}:${minutes}:${seconds}:${milliseconds}`;
+// }
+//
+// function formatTime(date) {
+//     let hours = date.getHours().toString().padStart(2, '0');
+//     let minutes = date.getMinutes().toString().padStart(2, '0');
+//     let seconds = date.getSeconds().toString().padStart(2, '0');
+//     let milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+//
+//     return `${hours}:${minutes}:${seconds}:${milliseconds}`;
+// }
+
+
+function formatTime(input) {
+    let date;
+
+    // Check if the input is a number (timestamp in milliseconds)
+    if (typeof input === 'number') {
+        date = new Date(input);
+    }
+    // Check if the input is a Date object
+    else if (input instanceof Date) {
+        date = input;
+    }
+    // If the input is neither, throw an error
+    else {
+        throw new Error('Input must be a timestamp in milliseconds or a Date object.');
+    }
 
     // Format hours, minutes, seconds, and milliseconds
     const hours = date.getHours().toString().padStart(2, '0');
@@ -192,4 +217,5 @@ function formatTimestamp(timestampMilliseconds) {
     // Combine the parts into a formatted string
     return `${hours}:${minutes}:${seconds}:${milliseconds}`;
 }
+
 
