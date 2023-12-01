@@ -15,7 +15,7 @@ function startTheApp()   {
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
-    let latestDataReceivedAt; let latestDataReceivedAt_formatted;
+    let latestDataReceivedAt_formatted;
     // let allBatchesReceived = [];
 
 
@@ -81,8 +81,10 @@ function startTheApp()   {
             const view = new DataView(arrayBuffer);
 
             // Read the sending timestamp
-            const sendingTimestamp = Number(view.getBigUint64(0, true)) / 1e6; // Convert to milliseconds
+            const sendingTimestamp = Number(view.getBigUint64(0, true)); // Convert to milliseconds
+            console.log('Sending Timestamp:', formatTimestamp(sendingTimestamp));
             console.log('Sending Timestamp:', sendingTimestamp);
+
 
             // Read the batch ID (now starts after the sending timestamp)
             const batchID = view.getUint32(sendingTimestampSize, true); // Read as little-endian
@@ -93,7 +95,7 @@ function startTheApp()   {
             // Initialize the batchData object
             let batchData = {
                 batchID: batchID,
-                sendingTimestamp: sendingTimestamp,
+                // sendingTimestamp: sendingTimestamp,
                 timestamps: [],
                 dataPointIDs: [],
                 // Add an array for each channel
@@ -156,19 +158,6 @@ function bytesToKilobytes(bytes) {
     return bytes / 1024;
 }
 
-function formatTime(date) {
-    if (!(date instanceof Date)) {
-        throw new Error('Input must be a Date object.');
-    }
-
-    let hours = date.getHours().toString().padStart(2, '0');
-    let minutes = date.getMinutes().toString().padStart(2, '0');
-    let seconds = date.getSeconds().toString().padStart(2, '0');
-    let milliseconds = date.getMilliseconds().toString().padStart(3, '0');
-
-    return `${hours}:${minutes}:${seconds}:${milliseconds}`;
-}
-
 function downloadJSON(data, filename) {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -188,3 +177,19 @@ function downloadJSON(data, filename) {
     // Release the Blob URL
     URL.revokeObjectURL(url);
 }
+
+
+function formatTimestamp(timestampMilliseconds) {
+    // Create a new Date object using the milliseconds timestamp
+    const date = new Date(timestampMilliseconds);
+
+    // Format hours, minutes, seconds, and milliseconds
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+
+    // Combine the parts into a formatted string
+    return `${hours}:${minutes}:${seconds}:${milliseconds}`;
+}
+
