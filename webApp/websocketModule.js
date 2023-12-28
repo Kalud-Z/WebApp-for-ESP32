@@ -12,16 +12,15 @@ let allBatchesSent = [];
 
 
 function startTheApp()   {
-    const numberOfDataPointsPerBatch = 20; //TODO : calculate this dynamically.
+    const numberOfDataPointsPerBatch = 10; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
 
     // const ws = new WebSocket('ws://localhost:8999');
-    const ws = new WebSocket('ws://192.168.3.5:8999/ws'); //ESP32
-    // const ws = new WebSocket('ws://192.168.43.253:8999/ws'); //ESP32
-    // const ws = new WebSocket('ws://185.237.15.90:8999'); //Ubuntu-remote-server
-    // const ws = new WebSocket('ws://192.168.3.5:8999'); //rp-ubuntu-server
+    // const ws = new WebSocket('ws://192.168.3.5:8999/ws'); //ESP32
+    const ws = new WebSocket('ws://192.168.68.107:8999/ws'); //ESP32 , h.chatt
+    // const ws = new WebSocket('ws://141.47.69.37:8999/ws'); //ESP32 - at Uni network.
 
     ws.binaryType = 'arraybuffer';
 
