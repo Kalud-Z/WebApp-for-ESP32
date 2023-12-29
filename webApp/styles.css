@@ -49,15 +49,34 @@ body {
     align-items: center;
 }
 
-#startButton, #showBatches {
+
+
+.buttonsContainer {
     position: absolute;
     top:4px;
     left:4px;
-    width: 11rem;
-    height: 4rem;
 }
 
-#showBatches {
-    top:174px;
+.commandButton {
+    width: 11rem;
+    height: 4rem;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    background-color: #45abce; /* Green */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: all 0.3s ease 0s;
 }
+
+.commandButton:hover {
+    background-color: #45a049;
+}
+
+
 

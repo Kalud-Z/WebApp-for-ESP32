@@ -1,26 +1,48 @@
-import { EventEmitterModule } from './eventEmitterModule.js';
-class WebSocketEmitter extends EventEmitterModule {}
+import {EventEmitterModule} from './eventEmitterModule.js';
+
+class WebSocketEmitter extends EventEmitterModule {
+}
 
 export const dataEmitter = new WebSocketEmitter();
 
 // export let numberOfChannels;
 export let numberOfChannels;
 
-
 let allBatchesReceived = [];
 let allBatchesSent = [];
 
+let connectButton = document.getElementById('connectToServer');
+let startButton = document.getElementById('startButton');
+let pauseButton = document.getElementById('pauseButton');
+let endButton = document.getElementById('endButton');
 
-function startTheApp()   {
+
+function connectToServer() {
     const numberOfDataPointsPerBatch = 10; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
 
-    // const ws = new WebSocket('ws://localhost:8999');
+    // const ws = new WebSocket('ws://localhost:8080');
     // const ws = new WebSocket('ws://192.168.3.5:8999/ws'); //ESP32
-    const ws = new WebSocket('ws://192.168.68.107:8999/ws'); //ESP32 , h.chatt
+    const ws = new WebSocket('ws://192.168.68.106:8999/ws'); //ESP32 , h.chatt
+    // const ws = new WebSocket('ws://192.168.43.252:8999/ws'); //ESP32 , h.chatt
     // const ws = new WebSocket('ws://141.47.69.37:8999/ws'); //ESP32 - at Uni network.
+
+    startButton.addEventListener('click', function () {
+        ws.send('START');
+        console.log("Sent 'START' to server");
+    });
+
+    pauseButton.addEventListener('click', function () {
+        ws.send('PAUSE');
+        console.log("Sent 'PAUSE' to server");
+    });
+
+    endButton.addEventListener('click', function () {
+        ws.send('END');
+        console.log("Sent 'END' to server");
+    });
 
     ws.binaryType = 'arraybuffer';
 
@@ -37,8 +59,8 @@ function startTheApp()   {
             }
 
             if (message.type === 'simulationState') {
-                if(message.value === "DONE") {
-                    console.log('Total size of Data received:' , totalReceivedBytes);
+                if (message.value === "DONE") {
+                    console.log('Total size of Data received:', totalReceivedBytes);
                     console.log(`Total data points received: ${totalDataPointsReceived}`);
                     console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
                     downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
@@ -70,9 +92,9 @@ function startTheApp()   {
             const batchID = view.getUint32(sendingTimestampSize, true); // Read as little-endian
 
             const batchTimestamp = formatTime(new Date()); // Format the current timestamp
-            allBatchesReceived.push({ batchID: batchID, timestamp: batchTimestamp });
+            allBatchesReceived.push({batchID: batchID, timestamp: batchTimestamp});
 
-            allBatchesSent.push({ batchID: batchID,  timestamp: formatTime(sendingTimestamp) });
+            allBatchesSent.push({batchID: batchID, timestamp: formatTime(sendingTimestamp)});
 
             // Calculate the number of data points
             const numberOfDataPoints = Math.floor((arrayBuffer.byteLength - sendingTimestampSize - batchIdSize) / datapointSize);
@@ -119,18 +141,13 @@ function startTheApp()   {
     ws.onclose = function (event) {
         console.log('ws connection closed.')
     };
-
 }
 
 //--------------------------------  HELPING FUNCTIONS -----------------------------------------------------
 
-document.getElementById('startButton').addEventListener('click', function() {
-    startTheApp(); // This will call the function when the button is clicked
+connectButton.addEventListener('click', function () {
+    connectToServer(); // This will call the function when the button is clicked
 });
-// document.getElementById('showBatches').addEventListener('click', function() {
-//     console.log('allBatchesReceived : ', allBatchesReceived)
-// });
-
 
 
 function bytesToKilobytes(bytes) {
@@ -138,7 +155,7 @@ function bytesToKilobytes(bytes) {
 }
 
 function downloadJSON(data, filename) {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
 
     // Create a link element
@@ -150,7 +167,7 @@ function downloadJSON(data, filename) {
     document.body.appendChild(a);
     // Dispatch click event on the link
     // This is necessary because link.click() does not work on some browsers
-    a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    a.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true, view: window}));
     // Remove link from body
     document.body.removeChild(a);
     // Release the Blob URL
@@ -207,5 +224,18 @@ function formatTime(input) {
     // Combine the parts into a formatted string
     return `${hours}:${minutes}:${seconds}:${milliseconds}`;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
