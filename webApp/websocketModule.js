@@ -60,11 +60,11 @@ function connectToServer() {
 
             if (message.type === 'simulationState') {
                 if (message.value === "DONE") {
-                    console.log('Total size of Data received:', totalReceivedBytes);
-                    console.log(`Total data points received: ${totalDataPointsReceived}`);
-                    console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-                    downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
-                    downloadJSON(allBatchesSent, `allSentBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
+                    // console.log('Total size of Data received:', totalReceivedBytes);
+                    // console.log(`Total data points received: ${totalDataPointsReceived}`);
+                    // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+                    //downloadJSON(allBatchesReceived, `allReceivedBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
+                    //downloadJSON(allBatchesSent, `allSentBatches_${numberOfChannels}_channels_${numberOfDataPointsPerBatch}_dp_per_batch.json`);
                 }
             }
 
