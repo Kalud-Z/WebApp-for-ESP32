@@ -19,7 +19,7 @@ def calculate_differences(file_path):
 
     return differences
 
-def plot_differences(differences):
+def plot_differences(differences, file_name):
     trace = go.Scatter(
         y = differences,
         mode = 'lines+markers',
@@ -27,13 +27,23 @@ def plot_differences(differences):
     )
     layout = go.Layout(
         title = 'Differences in Timestamps',
-        xaxis = dict(title = 'Batch Number'),
-        yaxis = dict(title = 'Time Difference (milliseconds)')
+        xaxis = dict(title = 'Batch ID'),
+        yaxis = dict(title = 'Time Difference (ms)'),
+        legend=dict(title=file_name)  # Simplified legend configuration
     )
     fig = go.Figure(data=[trace], layout=layout)
     plot(fig, filename='timestamp_differences.html')
 
-# Replace 'your_file.json' with the path to your JSON file
-file_path = 'allSentBatches_6_channels_20_dp_per_batch.json'
+
+file_path = 'allReceivedBatches_8_channels_20_dp_per_batch.json'
 differences = calculate_differences(file_path)
-plot_differences(differences)
+plot_differences(differences, 'allReceivedBatches_8_channels_20_dp_per_batch.json')
+
+
+def print_differences(differences):
+    for i, diff in enumerate(differences, start=1):  # Starting batch ID from 1 for example
+        print(f"Batch ID: {i} | TimeDiff: {diff:.2f}ms")
+
+
+print_differences(differences)
+

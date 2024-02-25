@@ -14,19 +14,18 @@ let allBatchesSent = [];
 let connectButton = document.getElementById('connectToServer');
 let startButton = document.getElementById('startButton');
 let pauseButton = document.getElementById('pauseButton');
+let continueButton = document.getElementById('continueButton');
 let endButton = document.getElementById('endButton');
 
 
 function connectToServer() {
-    const numberOfDataPointsPerBatch = 10; //TODO : calculate this dynamically.
+    const numberOfDataPointsPerBatch = 50; //TODO : calculate this dynamically.
 
     let totalReceivedBytes = 0;
     let totalDataPointsReceived = 0;
 
     // const ws = new WebSocket('ws://localhost:8080');
-    // const ws = new WebSocket('ws://192.168.3.5:8999/ws'); //ESP32
-    const ws = new WebSocket('ws://192.168.68.106:8999/ws'); //ESP32 , h.chatt
-    // const ws = new WebSocket('ws://192.168.43.252:8999/ws'); //ESP32 , h.chatt
+    const ws = new WebSocket('ws://192.168.3.5:8999/ws'); //ESP32
     // const ws = new WebSocket('ws://141.47.69.37:8999/ws'); //ESP32 - at Uni network.
 
     startButton.addEventListener('click', function () {
@@ -37,6 +36,16 @@ function connectToServer() {
     pauseButton.addEventListener('click', function () {
         ws.send('PAUSE');
         console.log("Sent 'PAUSE' to server");
+        pauseButton.style.display = 'none';
+        continueButton.style.display = 'inline';
+    });
+
+
+    continueButton.addEventListener('click', function () {
+        ws.send('PAUSE');
+        console.log("Sent 'PAUSE' to server");
+        continueButton.style.display = 'none';
+        pauseButton.style.display = 'inline';
     });
 
     endButton.addEventListener('click', function () {

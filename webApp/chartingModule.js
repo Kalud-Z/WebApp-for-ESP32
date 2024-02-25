@@ -15,7 +15,7 @@ export default function setupCharting(dataEmitter) {
             []  // channel data
         ]);
 
-        console.log('this is channelIndex : ', channelIndex)
+        // console.log('this is channelIndex : ', channelIndex)
         const options = createOptions(`Channel ${channelIndex} Data`, `color-${channelIndex}`);
         const container = createChartContainer();
         const uplot = new uPlot(options, channelsData[channelIndex - 1], container);

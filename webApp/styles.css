@@ -30,7 +30,7 @@ html, body {
 
 body {
     /*border: 2px solid blue;*/
-    padding-top: 4rem;
+    padding-top: 1rem;
     min-height: 100%;
     display: grid;
     grid-template-rows: repeat(2, 1fr); /* Adjust the repeat number to match the number of charts */
@@ -52,9 +52,7 @@ body {
 
 
 .buttonsContainer {
-    position: absolute;
-    top:4px;
-    left:4px;
+    margin-bottom: 10rem;
 }
 
 .commandButton {
@@ -76,6 +74,14 @@ body {
 
 .commandButton:hover {
     background-color: #45a049;
+}
+
+#pauseButton {
+    display: inline;
+}
+
+#continueButton {
+    display: none;
 }
 
 
